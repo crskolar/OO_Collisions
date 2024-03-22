@@ -99,10 +99,10 @@ def calcUs_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
         # Do summation term in Us
-        Us += sp.iv(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn*yn))
+        Us += sp.ive(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn*yn))
         
     # Multiply by everything else and return
-    return Us*1j*nu*np.exp(-kperp**2*rho_avg**2)/kpar/vth
+    return Us*1j*nu/kpar/vth
 
 
 # This function calculates the exact modified distribution for a Maxwellian distribution
@@ -113,8 +113,7 @@ def calcMs_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, Us):
     for n in range(nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
-        
-        Ms += np.exp(-kperp**2*rho_avg**2)*np.exp(-yn**2)*sp.iv(n,kperp**2*rho_avg**2)
+        Ms += np.exp(-yn**2)*sp.ive(n,kperp**2*rho_avg**2)
     
     return Ms*math.pi**.5/kpar/vth/np.abs(1+Us)**2-np.abs(Us)**2/nu/np.abs(1+Us)**2
 
@@ -235,7 +234,35 @@ def calcSpectra(M_i, M_e, chi_i, chi_e):
     eps = 1 + chi_i + chi_e
     return 2*np.abs(1-chi_e/eps)**2*M_e+2*np.abs(chi_e/eps)**2*M_i
     
+# We can do all of these calculations faster (which will be important due to how many times we need to run these) if we calculate them together in the same loop
+# Also include the capability to restart based on an input 
+# Have omega be a scalar. Thus, have sum_U, sum_M, sum_chi, U, M, and chi all be scalars
+# If this is the first time you are using this, set sum_U, sum_M, and sum_chi to be 0+1j*0.0 (need to do this so that we retain the imagninary components)
+def calcU_M_chi(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_n, par_dir, wp, sum_U, sum_M, sum_chi):
+    # Iterate from nStart to nEnd+1
+    for n in range(nStart, nEnd+1):
+        # Calculate the base pole of this problem
+        z = (omega - n*Oc-1j*nu)/kpar
+        
+        # Do the integrals for the three types of poles that show up in the calculations
+        # 1: A single pole at z with order 1
+        # 2: A single pole at z with order 2
+        # 3: A double pole at z and z* (each first order)
+        singlePole_Order1 = poleIntegrate(np.array([z]), np.array([1]), vpar, f0, mesh_n, par_dir)
+        singlePole_Order2 = poleIntegrate(np.array([z]), np.array([2]), vpar, f0, mesh_n, par_dir)
+        doublePole = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0, mesh_n, par_dir)
+        
+        # Perform summation for U, M, and Chi
+        sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
+        sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
+        sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
     
+    # Perform remaining operations to calculate U, M, and Chi
+    U = -2*math.pi*1j*nu/kpar*sum_U
+    M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+    chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+    
+    return [M, chi, U, sum_M, sum_chi, sum_U]
     
     
     

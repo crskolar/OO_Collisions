@@ -681,6 +681,9 @@ def test_calcM_Chi():
     
     # Let omega be from 
     omega = np.linspace(-50000, 50000, 51)
+    M_approx = np.zeros_like(omega) + 1j*0.0
+    chi_approx = np.zeros_like(omega) + 1j*0.0
+    U_approx = np.zeros_like(omega) + 1j*0.0
     # omega = np.array([-50000,0,50000])
     
     # Build a velocity mesh (eventually do a test on what happens when we change dv)
@@ -696,13 +699,16 @@ def test_calcM_Chi():
     # Us_approx = calcUs(vpar, vperp, f0e, omega, kpar, kperp, nmax, Oce, nue, mesh_n, 0)
     # Ms_approx = calcMs(vpar, vperp, f0e, omega, kpar, kperp, nmax, Oce, nue, mesh_n, 0, Us_approx)
     # Chis_approx = calcChis(vpar, vperp, f0e, omega, kpar, kperp, nmax, Oce, nue, mesh_n, 0, Us_approx, wpe)
-    
-    [M_approx,Chi_approx] = calcM_Chi(vpar, vperp, f0e, omega, kpar, kperp, nmax, Oce, nue, mesh_n, 0, wpe)
+    for k in range(len(omega)):
+        print("omega:", omega[k])
+    # [M_approx,Chi_approx] = calcM_Chi(vpar, vperp, f0e, omega, kpar, kperp, nmax, Oce, nue, mesh_n, 0, wpe)
+        
+        [M_approx[k], chi_approx[k], U_approx[k]] = calcU_M_chi(vpar, vperp, f0e, omega[k], kpar, kperp, 0, nmax, Oce, nue, mesh_n, 0, wpe, 0.0+1j*0.0, 0.0+1j*0.0, 0.0+1j*0.0)[0:3]
     
     # Calculate exact solution
     Us_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, 20, rho_avge, Oce, nue)
     Ms_exact = calcMs_Maxwellian(omega, kpar, kperp, vthe, 20, rho_avge, Oce, nue, Us_exact)
-    Chis_exact = calcChis_Maxwellian(omega, nue, Us_exact, alpha, Te, Te)
+    chis_exact = calcChis_Maxwellian(omega, nue, Us_exact, alpha, Te, Te)
     
     font = {'size'   : 22}
     mpl.rc('font', **font)
@@ -733,10 +739,10 @@ def test_calcM_Chi():
     ax2 = []
     for i in range(0,1):    
         ax2.append(plt.subplot(gs2[i])) 
-    ax2[0].plot(omega, np.real(Chis_exact),'-',color='C0',linewidth=2,label='Real Exact')
-    ax2[0].plot(omega, np.imag(Chis_exact),'-',color='C3',linewidth=2)
-    ax2[0].plot(omega, np.real(Chi_approx),'o',color='C0',label='Real Approx')
-    ax2[0].plot(omega, np.imag(Chi_approx),'o',color='C3')
+    ax2[0].plot(omega, np.real(chis_exact),'-',color='C0',linewidth=2,label='Real Exact')
+    ax2[0].plot(omega, np.imag(chis_exact),'-',color='C3',linewidth=2)
+    ax2[0].plot(omega, np.real(chi_approx),'o',color='C0',label='Real Approx')
+    ax2[0].plot(omega, np.imag(chi_approx),'o',color='C3')
     
     ax2[0].set_xlabel('$\omega$')
     ax2[0].set_ylabel('$\chi_s$')
@@ -761,7 +767,7 @@ def test_calcM_Chi_ions():
     nu_ISR = 450e6
     ni = 1e11
     k = 2*math.pi*nu_ISR/c
-    nmax = 1000
+    nmax = 0
     mesh_n = 1000
     
     Te = 2000.
@@ -778,7 +784,7 @@ def test_calcM_Chi_ions():
     kperp = k*np.sin(theta)
     
     # Let omega be from 
-    omega = np.linspace(-10000, 10000, 51)
+    omega = np.linspace(-10000, 10000, 401)
     
     # Build a velocity mesh (eventually do a test on what happens when we change dv)
     numVpar = int(1e3)
@@ -811,6 +817,7 @@ def test_calcM_Chi_ions():
     start_time = time.time()
     for n in range(nmax,nmax+1):
         # Calculate approximate solution
+        
         [M_i_approx,Chi_i_approx] = calcM_Chi(vpar, vperp, f0i, omega, kpar, kperp, n, Oci, nui, mesh_n, 0, wpi)
         ax[0].plot(omega, np.real(M_i_approx),'-',linewidth=2)
         ax[1].plot(omega, np.imag(M_i_approx),'-',linewidth=2)
@@ -819,8 +826,9 @@ def test_calcM_Chi_ions():
         ax[3].plot(omega, np.imag(Chi_i_approx),'-',linewidth=2)
    
    
-    end_time = time.time()
-    print("Run Time:", end_time)
+    end_time = time.time() - start_time
+    print(end_time/len(omega)/(nmax+1))
+    # print("Run Time:", end_time)
     ax[2].set_xlabel('$\omega$')
     ax[3].set_xlabel('$\omega$')
     ax[0].set_ylabel('$M_s$')
@@ -852,5 +860,5 @@ def test_calcM_Chi_ions():
 # test_calcChis_Maxwellian_handCalc()
 # test_calcChis_Maxwellian()
 # test_calcChis()
-# test_calcM_Chi()
-test_calcM_Chi_ions()
+test_calcM_Chi()
+# test_calcM_Chi_ions()
