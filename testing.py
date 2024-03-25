@@ -843,6 +843,17 @@ def test_calcM_Chi_ions():
 
     return
 
+def test_calcSpectra_handCalc():
+    chi_e = 12. + 1j*2.0
+    chi_i = -3 + 1j*4.0
+    M_i = 3.
+    M_e = 5.
+    
+    S_approx = calcSpectra(M_i, M_e, chi_i, chi_e)
+    S_exact = 8  # From a hand calculation
+    print(S_approx)
+    
+
 # Run the testing functions
 # test_getVInterp()
 # test_getIntegrand()
@@ -860,5 +871,6 @@ def test_calcM_Chi_ions():
 # test_calcChis_Maxwellian_handCalc()
 # test_calcChis_Maxwellian()
 # test_calcChis()
-test_calcM_Chi()
+# test_calcM_Chi()
 # test_calcM_Chi_ions()
+test_calcSpectra_handCalc()
