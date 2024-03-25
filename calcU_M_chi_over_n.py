@@ -23,18 +23,30 @@ c = const.c
 B = 1e-5
 nu_ISR = 450e6
 
+Tn = 1000
+nn = 1e14   # m^-3
+
 Ti = 1000
 mi = 16*u
 ni = 1e11
-nui = 1.0
 
-Te = 2000.
+Te = 1000.
 ne = 1e11
-nue = 1.0
+nuen = 8.9e-11*nn/1e6*(1+5.7e-4*Te)*Te**.5
+nuei = 54.5*ni/1e6/Te**1.5
+nuee = 54.5*ne/1e6/2**.5/Te**1.5 
+nue = nuen + nuei + nuee
+
+Tr = (Ti+Tn)/2
+nuin = 3.67e-11*nn/1e6*Tr**.5*(1-0.064*np.log10(Tr))**2
+nuii = 0.22*ni/1e6/Ti**1.5
+nuie = me*nuei/mi
+nui = nuin + nuii + nuie
+
 
 # Set ISR parameters
 k = 2*math.pi*nu_ISR/c
-theta = np.deg2rad(30)
+theta = np.deg2rad(0)
 kpar = k*np.cos(theta)
 kperp = k*np.sin(theta)
 
@@ -118,7 +130,7 @@ for n in range(0,nmax+1):
     np.savetxt('M.txt', M, fmt='%.18e')
     np.savetxt('chi.txt', chi, fmt='%.18e')
     np.savetxt('sum_U.txt', sum_U, fmt='%.18e')
-    np.savetxt('sum_.txt', sum_M, fmt='%.18e')
+    np.savetxt('sum_M.txt', sum_M, fmt='%.18e')
     np.savetxt('sum_chi.txt', sum_chi, fmt='%.18e')
             
     print("time:",time.time()-start_time)
