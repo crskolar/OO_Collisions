@@ -72,7 +72,6 @@ f0i = np.exp( -(VVperp**2 + VVpar**2)/vthi**2)/vthi**3/math.pi**1.5
 
 # Calculate alpha
 alpha = 1/k/lambdaD
-
 # Set parameters for calculation of modified ion distribution and ion suseptability
 nmax = 2000
 mesh_n = 1000
@@ -83,6 +82,26 @@ cs = (5/3*kB*(Ti+Te)/mi)**.5
 omega_bounds = round(cs*k*3,-3)
 omega = np.linspace(-omega_bounds,omega_bounds,401)
 np.savetxt('omega.txt',omega,fmt='%.18e')
+
+# Calculate the exact solutions for the ions, electrons, adn resulting spectra
+U_e_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue)
+M_e_exact = calcMs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, U_e_exact)
+chi_e_exact = calcChis_Maxwellian(omega, nue, U_e_exact, alpha, Te, Te)
+
+U_i_exact = calcUs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui)
+M_i_exact = calcMs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, U_i_exact)
+chi_i_exact = calcChis_Maxwellian(omega, nui, U_i_exact, alpha, Te, Ti)
+S_exact = calcSpectra(M_i_exact, M_e_exact, chi_i_exact, chi_e_exact)
+
+# Save exact solutions
+np.savetxt('U_e_exact.txt',U_e_exact,fmt='%.18e')
+np.savetxt('M_e_exact.txt',M_e_exact,fmt='%.18e')
+np.savetxt('chi_e_exact.txt',chi_e_exact,fmt='%.18e')
+np.savetxt('U_i_exact.txt',U_i_exact,fmt='%.18e')
+np.savetxt('M_i_exact.txt',M_i_exact,fmt='%.18e')
+np.savetxt('chi_i_exact.txt',chi_i_exact,fmt='%.18e')
+np.savetxt('S_exact.txt',S_exact,fmt='%.18e')
+
 
 # Check if a file exists for each of U, M, chi, and their internal sums
 if not os.path.exists('U.txt'):

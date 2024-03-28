@@ -24,7 +24,6 @@ c = const.c
 # This is the exact solution for an integral of a Guassian with a single pole
 def singlePoleExact(z):
     return -2*math.pi**.5*sp.dawsn(z)+np.exp(-z*z)*np.log(-1/z)+np.exp(-z*z)*np.log(z)
-    
 
 # Tested
 def test_getVInterp():
@@ -183,7 +182,7 @@ def test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma():
     ax[0].set_xticklabels([])
     ax[1].set_ylim(-1.3,.15)
 
-    fig.savefig('Documentation/figures/Gaussian_vs_Plemelj_changeGamma_1e-5.png',format='png')
+    # fig.savefig('Documentation/figures/Gaussian_vs_Plemelj_changeGamma_1e-5.png',format='png')
 
 
 def test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma_doublePole():
@@ -538,14 +537,15 @@ def test_calcChis_Maxwellian_handCalc():
 
 def test_calcChis_Maxwellian():    
     # Set background parameters based on a reasonable F region plasma 
-    Te = 1000/2
+    Te = 1000
     B = 1e-5
-    vthe = (2*kB*Te/me)**.5
-    Oce = e*B/me
+    mi = 16*u
+    vthe = (2*kB*Te/mi)**.5
+    Oce = e*B/mi
     rho_avge = vthe/Oce/2**.5
-    nue = 1.0*100
+    nue = 1.0
     nu_ISR = 450e6
-    k = 2*math.pi*nu_ISR/c*.01
+    k = 2*math.pi*nu_ISR/c
     ne = 1e11
     
     lambdaD = (eps0*kB*Te/(ne*e**2))**.5
@@ -558,24 +558,27 @@ def test_calcChis_Maxwellian():
     kperp = k*np.sin(theta)
     
     # Let omega be from 
-    omega = np.linspace(-50000, 50000, 101)
+    omega = np.linspace(-37000, 37000, 101)
     
     # Set the maximum n to use for summation for Bessel function
-    nmax = 20
+    nmax = 200
     
     # Make this plot nicer!!!!
-    for n in range(0,nmax+1):
+    for n in range(nmax,nmax+1):
         # print(n)
         Us_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, n, rho_avge, Oce, nue)
         Chis_exact = calcChis_Maxwellian(omega, nue, Us_exact, alpha, Te, Te)
     
-        plt.plot(omega, np.real(Chis_exact))
-        plt.plot(omega, np.imag(Chis_exact))
+        # plt.plot(omega, np.real(Chis_exact))
+        # plt.plot(omega, np.imag(Chis_exact))
+        plt.plot(omega,np.real(Us_exact))
+        # plt.plot(omega,np.imag(Us_exact))
+    
     plt.xlabel('$\omega$ (rad/s)')
     plt.ylabel('$\chi_s$')
     
     wpe = (ne*e**2/me/eps0)**.5
-    print("wpe",wpe)
+    print("alpha",alpha)
     
     return
 
@@ -665,7 +668,7 @@ def test_calcM_Chi():
     nu_ISR = 450e6
     ne = 1e11
     k = 2*math.pi*nu_ISR/c    *.01
-    nmax = 2
+    nmax = 50
     mesh_n = 1000
     
     lambdaD = (eps0*kB*Te/(ne*e**2))**.5
@@ -775,6 +778,7 @@ def test_calcM_Chi_ions():
     lambdaD = (eps0*kB*Te/(ne*e**2))**.5
     alpha = 1/k/lambdaD
     
+    
     wpi = (ni*e**2/mi/eps0)**.5
     
     # Assume 30 deg from parallel (figure out propery terminology for this)
@@ -852,14 +856,97 @@ def test_calcSpectra_handCalc():
     S_approx = calcSpectra(M_i, M_e, chi_i, chi_e)
     S_exact = 8  # From a hand calculation
     print(S_approx)
+
+def test_calcSpectra_exact():
+    # Set background parameters based on a reasonable F region plasma 
+    B = 1e-5
+    nu_ISR = 450e6
+
+    Tn = 1000
+    nn = 1e14   # m^-3
+
+    Ti = 1000
+    mi = 16*u
+    ni = 1e11
+
+    Te = 2000.
+    ne = 1e11
+    nuen = 8.9e-11*nn/1e6*(1+5.7e-4*Te)*Te**.5
+    nuei = 54.5*ni/1e6/Te**1.5
+    nuee = 54.5*ne/1e6/2**.5/Te**1.5 
+    nue = 1.0
+
+    Tr = (Ti+Tn)/2
+    nuin = 3.67e-11*nn/1e6*Tr**.5*(1-0.064*np.log10(Tr))**2
+    nuii = 0.22*ni/1e6/Ti**1.5
+    nuie = me*nuei/mi
+    nui = 1.0
+
+
+    # Set ISR parameters
+    k = 2*math.pi*nu_ISR/c
+    theta = np.deg2rad(30)
+    kpar = k*np.cos(theta)
+    kperp = k*np.sin(theta)
+
+    # Calculate thermal velocities, gyroradii, gyrofrequencies, plasma frequency, and electron Debye length
+    vthi = (2*kB*Ti/mi)**.5
+    vthe = (2*kB*Te/me)**.5
+    Oci = e*B/mi
+    Oce = e*B/me
+    rho_avgi = vthi/Oci/2**.5
+    rho_avge = vthe/Oce/2**.5
+    wpi = (ni*e**2/mi/eps0)**.5
+    wpe = (ne*e**2/me/eps0)**.5
+    lambdaD = (eps0*kB*Te/(ne*e**2))**.5
     
+    # Calculate alpha
+    alpha = 1/k/lambdaD
+    
+    # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
+    cs = (5/3*kB*(Ti+Te)/mi)**.5
+    omega_bounds = round(cs*k*3,-3)
+    omega = np.linspace(-omega_bounds,omega_bounds,51)
+    nmax = 2000
+    
+    U_e = calcUs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue)
+    U_i = calcUs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui)
+    M_e = calcMs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, U_e)
+    M_i = calcMs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, U_i)
+    chi_e = calcChis_Maxwellian(omega, nue, U_e, alpha, Te, Te)
+    chi_i = calcChis_Maxwellian(omega, nui, U_i, alpha, Te, Ti)
+    
+    # Build a velocity mesh
+    dv = 1e-2*vthi
+    vpar = np.arange(-6*vthi,6*vthi+dv,dv)
+    vperp = np.arange(0,6*vthi+dv,dv)
+    [VVperp, VVpar] = np.meshgrid(vperp, vpar)
+
+    # Build distribution function
+    f0i = np.exp( -(VVperp**2 + VVpar**2)/vthi**2)/vthi**3/math.pi**1.5
+    mesh_n=100
+    
+    U_approx = np.zeros_like(omega) + 1j*0.0
+    M_approx = np.zeros_like(omega) + 1j*0.0
+    chi_approx = np.zeros_like(omega) + 1j*0.0
+    for k in range(len(omega)):
+        [M_approx[k], chi_approx[k], U_approx[k]] = calcU_M_chi(vpar, vperp, f0i, omega[k], kpar, kperp, 0, 50, Oci, nui, mesh_n, 0, wpi, 0.0+1j*0.0, 0.0+1j*0.0, 0.0+1j*0.0)[0:3]
+        print(k)
+    
+    S = calcSpectra(M_i, M_e, chi_i, chi_e)
+    # plt.plot(omega,S)
+    plt.plot(omega,np.real(chi_i))
+    plt.plot(omega,np.real(chi_approx),'.')
+    
+    
+    return    
 
 # Run the testing functions
 # test_getVInterp()
 # test_getIntegrand()
 # test_plemelj()
 # test_poleIntegrate_ones_vs_Plemelj_changeGamma()
-# test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma()
+test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma()
 # test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma_doublePole()
 # test_calcUs_Maxwellian_handCalc()
 # test_calcUs_Maxwellian()
@@ -873,4 +960,5 @@ def test_calcSpectra_handCalc():
 # test_calcChis()
 # test_calcM_Chi()
 # test_calcM_Chi_ions()
-test_calcSpectra_handCalc()
+# test_calcSpectra_handCalc()
+# test_calcSpectra_exact()

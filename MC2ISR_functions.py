@@ -115,7 +115,7 @@ def calcMs_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, Us):
         
         Ms += np.exp(-yn**2)*sp.ive(n,kperp**2*rho_avg**2)
     
-    return Ms*math.pi**.5/kpar/vth/np.abs(1+Us)**2-np.abs(Us)**2/nu/np.abs(1+Us)**2
+    return np.real(Ms*math.pi**.5/kpar/vth/np.abs(1+Us)**2-np.abs(Us)**2/nu/np.abs(1+Us)**2)
 
 def calcChis_Maxwellian(omega, nu, Us, alpha, Te, Ts):
     return (1+Us*(1+1j*omega/nu))*Te*alpha**2/Ts/(1+Us)
