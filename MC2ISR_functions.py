@@ -20,10 +20,10 @@ def getVInterp(poles, v_input, mesh_n):
         re_v = np.real(poles[i])
         im_v = np.imag(poles[i])
         
-        v_0 = re_v - 10*im_v;
+        v_0 = re_v - 30*im_v;
         v_1 = re_v - 2*im_v;
         v_2 = re_v + 2*im_v;
-        v_3 = re_v + 10*im_v
+        v_3 = re_v + 30*im_v
         
         # v_mesh = np.concatenate(np.linspace(v_0,v_1,mesh_n))
         v_mesh = np.concatenate((np.linspace(v_0,v_1,mesh_n),np.linspace(v_1,v_2,mesh_n),np.linspace(v_2,v_3,mesh_n)))
@@ -264,6 +264,31 @@ def calcU_M_chi(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_
     
     return [M, chi, U, sum_M, sum_chi, sum_U]
     
-    
+
+# This function will calculate U, M, chi, and their sums not using a 2D array but instead reading in the distribution function line by line for each perpendicular velocity
+def calcU_M_chi_iter(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_n, par_dir, wp, sum_U, sum_M, sum_chi, saveFreq):
+    for n in range(nStart,nEnd+1):
+        # Calculate the base pole of this problem
+        z = (omega - n*Oc-1j*nu)/kpar
+        
+        # Make arrays for the pole integrals
+        singlePole_Order1 = np.zeros_like(vperp)
+        singlePole_Order2 = np.zeros_like(vperp)
+        doublePole = np.zeros_like(vperp)
+        
+        # Iterate through vperp
+        # for i in range(len(vperp)):
+        #     # Do the integrals for the three types of poles that show up in the calculations
+        #     # 1: A single pole at z with order 1
+        #     # 2: A single pole at z with order 2
+        #     # 3: A double pole at z and z* (each first order)
+        #     singlePole_Order1[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0[:,i], mesh_n, par_dir)
+        #     singlePole_Order2[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0[:,i], mesh_n, par_dir)
+        #     doublePole[i] = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0[:,i], mesh_n, par_dir)
+        
+        # # Perform summation for U, M, and Chi
+        # sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
+        # sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
+        # sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
     
     

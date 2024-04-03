@@ -62,9 +62,10 @@ wpe = (ne*e**2/me/eps0)**.5
 lambdaD = (eps0*kB*Te/(ne*e**2))**.5
 
 # Build a velocity mesh
-dv = 1e-2*vthi
-vpar = np.arange(-6*vthi,6*vthi+dv,dv)
-vperp = np.arange(0,6*vthi+dv,dv)
+dvpar = 1e-6*vthi
+dvperp = 1e-1*vthi
+vpar = np.arange(-6*vthi,6*vthi+dvpar,dvpar)
+vperp = np.arange(0,6*vthi+dvperp,dvperp)
 [VVperp, VVpar] = np.meshgrid(vperp, vpar)
 
 # Build distribution function
@@ -74,13 +75,13 @@ f0i = np.exp( -(VVperp**2 + VVpar**2)/vthi**2)/vthi**3/math.pi**1.5
 alpha = 1/k/lambdaD
 # Set parameters for calculation of modified ion distribution and ion suseptability
 nmax = 2000
-mesh_n = 1000
+mesh_n = 500
 
 
 # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
 cs = (5/3*kB*(Ti+Te)/mi)**.5
 omega_bounds = round(cs*k*3,-3)
-omega = np.linspace(-omega_bounds,omega_bounds,401)
+omega = np.linspace(-omega_bounds,omega_bounds,31)
 np.savetxt('omega.txt',omega,fmt='%.18e')
 
 # Calculate the exact solutions for the ions, electrons, adn resulting spectra
@@ -130,6 +131,8 @@ sum_U = np.loadtxt('sum_U.txt', dtype=np.complex_)
 sum_M = np.loadtxt('sum_M.txt', dtype=np.complex_)
 sum_chi = np.loadtxt('sum_chi.txt', dtype=np.complex_)
 
+
+saveFreq = 20
 # Iterate through n and omega
 for n in range(0,nmax+1):
     start_time = time.time()
@@ -143,14 +146,15 @@ for n in range(0,nmax+1):
             # Otherwise, we use the previous value to get the current sum
             else:
                 [M[k,n], chi[k,n], U[k,n], sum_M[k,n], sum_chi[k,n], sum_U[k,n]] = calcU_M_chi(vpar, vperp, f0i, omega[k], kpar, kperp, n, n, Oci, nui, mesh_n, 0, wpi, sum_U[k,n-1], sum_M[k,n-1], sum_chi[k,n-1])
-            
-    # Save the data
-    np.savetxt('U.txt', U, fmt='%.18e')
-    np.savetxt('M.txt', M, fmt='%.18e')
-    np.savetxt('chi.txt', chi, fmt='%.18e')
-    np.savetxt('sum_U.txt', sum_U, fmt='%.18e')
-    np.savetxt('sum_M.txt', sum_M, fmt='%.18e')
-    np.savetxt('sum_chi.txt', sum_chi, fmt='%.18e')
+    
+    if np.round(n/saveFreq) == n/saveFreq:
+        # Save the data every saveFreq frames
+        np.savetxt('U.txt', U, fmt='%.18e')
+        np.savetxt('M.txt', M, fmt='%.18e')
+        np.savetxt('chi.txt', chi, fmt='%.18e')
+        np.savetxt('sum_U.txt', sum_U, fmt='%.18e')
+        np.savetxt('sum_M.txt', sum_M, fmt='%.18e')
+        np.savetxt('sum_chi.txt', sum_chi, fmt='%.18e')
             
     print("time:",time.time()-start_time)
 

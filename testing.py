@@ -946,7 +946,7 @@ def test_calcSpectra_exact():
 # test_getIntegrand()
 # test_plemelj()
 # test_poleIntegrate_ones_vs_Plemelj_changeGamma()
-test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma()
+# test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma()
 # test_poleIntegrate_Gaussian_vs_Plemelj_changeGamma_doublePole()
 # test_calcUs_Maxwellian_handCalc()
 # test_calcUs_Maxwellian()

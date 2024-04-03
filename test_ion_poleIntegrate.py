@@ -3,6 +3,7 @@ import math
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
 from mpl_toolkits import mplot3d
 import scipy.special as sp
 from scipy.interpolate import interp1d
@@ -61,18 +62,14 @@ wpi = (ni*e**2/mi/eps0)**.5
 wpe = (ne*e**2/me/eps0)**.5
 lambdaD = (eps0*kB*Te/(ne*e**2))**.5
 
+print(nui/kpar/vthi)
+
 # Calculate alpha
 alpha = 1/k/lambdaD
 
 # Set parameters for calculation of modified ion distribution and ion suseptability
 nmax = 2000
 mesh_n = 1000
-
-# Build a velocity mesh
-dv = 10**-4.5*vthi
-vpar = np.arange(-4*vthi,4*vthi+dv,dv)
-vperp = np.arange(0,4*vthi+dv,dv)
-# [VVperp, VVpar] = np.meshgrid(vperp, vpar)
 
 # Build distribution function
 def maxwellian_norm(vperp, vpar, vth):
@@ -82,54 +79,74 @@ def maxwellian_norm(vperp, vpar, vth):
 omega = 100.0
 
 # Make pole for some arbitrary n
-n = 0.0
+n = 1.0
 z = (omega-n*Oci-1j*nui)/kpar
+
+dvperp = 10**-1*vthi
+vperp = np.arange(0,4*vthi+dvperp,dvperp)
+
+singlePoleOrder1_exact = vthi**-3*math.pi**-1.5*np.exp(-(vperp**2+z*2)/vthi**2)*(-math.pi*sp.erfi(z/vthi)+np.log(-1/z)+np.log(z))
+singlePoleOrder2_exact = -2*math.pi**-1.5*vthi**-5*np.exp(-(vperp**2+z**2)/vthi**2)*(vthi*math.pi**.5*np.exp(-z**2/vthi**2)+z*(-math.pi*sp.erfi(z/vthi)+np.log(-1/z)+np.log(z)))
 
 # Make a set of arrays for approximate pole integrals
 singlePoleOrder1_approx = np.zeros_like(vperp) + 1j*0.0
 singlePoleOrder2_approx = np.zeros_like(vperp) + 1j*0.0
-# Iterate through vperp 
-for i in range(len(vperp)):
-    print("i:",i,"of",len(vperp)-1)
-    # Calculate distribution function
-    f0i = maxwellian_norm(vperp[i], vpar, vthi)
+
+font = {'size'   : 30}
+mpl.rc('font', **font)
+fig = plt.figure(1, figsize=(14,8))
+gs = gridspec.GridSpec(1,1)#, height_ratios=[0.05,1,0.2], width_ratios=[1,0.2,0.2,1])
+gs.update(left=0.1, right=.96, bottom=.13, top=.92, wspace=0.015, hspace=.015)
+fig.patch.set_facecolor('white')
+ax = plt.subplot(gs[0])
+
+# ax.plot(vperp/vthi, np.real(singlePoleOrder2_exact), 'k-', linewidth=4)
+
+meshes = np.array([-3,-3.5,-4,-4.5,-5,-5.5,-6,-6.5])
+# meshes = np.array([-3.,-4])
+mesh_string = ['Exact']
+
+chi_approx = np.zeros_like(meshes) + 1j*0.0
+
+# meshes = np.array([-6.])
+# Set colors based on length of phi_bias using inferno colormap
+colors = []
+for i in range(0,len(meshes)):
+    colors.append(pl.cm.inferno( i/(len(meshes))) )
+
+for k in range(len(meshes)):
+    dvpar = 10**meshes[k]*vthi
+    vpar = np.arange(-4*vthi,4*vthi+dvpar,dvpar)
+    mesh_string.append('%.1f' % (meshes[k]))
+    # Iterate through vperp 
+    for i in range(len(vperp)):
+        print("Mesh size:", meshes[k],"i:",i,"of",len(vperp)-1)
+        # Calculate distribution function
+        f0i = maxwellian_norm(vperp[i], vpar, vthi)
+        
+        # Do pole integrations
+        singlePoleOrder1_approx[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0i, mesh_n, 0)
+        singlePoleOrder2_approx[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0i, mesh_n, 0)
+        
+    # ax.plot(vperp/vthi, np.real(singlePoleOrder2_approx), '--', linewidth=3,color=colors[k])
     
-    # Do pole integrations
-    singlePoleOrder1_approx[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0i, mesh_n, 0)
-    singlePoleOrder2_approx[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0i, mesh_n, 0)
+    chi_approx[k] = np.trapz(vperp*singlePoleOrder2_approx*sp.jv(n,kperp*vperp/Oci)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePoleOrder1_approx*sp.jv(n,kperp*vperp/Oci)*(sp.jv(n-1,kperp*vperp/Oci)-sp.jv(n+1,kperp*vperp/Oci)),vperp)
+    
+# ax.set_ylim(-6.2e-13,4e-13)
+# ax.set_xlabel('$v_\perp/v_{th_i}$')
+# ax.set_ylabel('Re$[p_2(z)]$')
+# ax.set_xlim(np.min(vperp/vthi),np.max(vperp/vthi))
+# ax.legend(mesh_string,ncols=2)
+# ax.set_title('$\omega=%d,  n=%d,  mesh=%d$' % (omega,n,mesh_n))
+# ax.grid()
+
+ax.plot(meshes,np.real(chi_approx),'.')
+ax.plot(meshes,np.imag(chi_approx),'.')
+ax.set_title('$\Delta v_\perp=10^{-1}$')
+# fig.savefig('Documentation/figures/test_p2_omega_%d_' % (omega) + 'n_%d_' % (n) + 'mesh_%d' % (mesh_n) + '.png',format='png')
 
 
 
-# # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
-# # cs = (5/3*kB*(Ti+Te)/mi)**.5
-# # omega_bounds = round(cs*k*3,-3)
-# # omega = np.linspace(-omega_bounds,omega_bounds,401)
-# omega = 100.0
-
-# # Calculate the exact solutions for the ions, electrons, adn resulting spectra
-# U_e_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue)
-# M_e_exact = calcMs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, U_e_exact)
-# chi_e_exact = calcChis_Maxwellian(omega, nue, U_e_exact, alpha, Te, Te)
-
-# U_i_exact = calcUs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui)
-# M_i_exact = calcMs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, U_i_exact)
-# chi_i_exact = calcChis_Maxwellian(omega, nui, U_i_exact, alpha, Te, Ti)
-# S_exact = calcSpectra(M_i_exact, M_e_exact, chi_i_exact, chi_e_exact)
-
-
-
-
-# # Make the correct solutions for the pole integrations
-singlePoleOrder1_exact = vthi**-3*math.pi**-1.5*np.exp(-(vperp**2+z*2)/vthi**2)*(-math.pi*sp.erfi(z/vthi)+np.log(-1/z)+np.log(z))
-singlePoleOrder2_exact = -2*math.pi**-1.5*vthi**-5*np.exp(-(vperp**2+z**2)/vthi**2)*(vthi*math.pi**.5*np.exp(-z**2/vthi**2)+z*(-math.pi*sp.erfi(z/vthi)+np.log(-1/z)+np.log(z)))
-
-# # Do pole integration calculation
-# singlePoleOrder1_approx = poleIntegrate(np.array([z]), np.array([1]), vpar, f0i, mesh_n, 0)
-# singlePoleOrder2_approx = poleIntegrate(np.array([z]), np.array([2]), vpar, f0i, mesh_n, 0)
-
-
-plt.plot(vperp, np.real(singlePoleOrder2_exact), 'k-', linewidth=2)
-plt.plot(vperp, np.real(singlePoleOrder2_approx), '--', linewidth=2)
 
 
 

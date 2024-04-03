@@ -1,0 +1,148 @@
+\documentclass{report}
+\usepackage{geometry}
+\geometry{margin=1.05in}
+\usepackage{amsmath}
+\usepackage[makeroom]{cancel}
+%\numberwithin{equation}{section}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{empheq}
+%\usepackage{slashbox}
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage[table,pdftex,dvipsnames]{xcolor}
+\usepackage[titletoc]{appendix}
+\usepackage{animate}
+
+\usepackage{multicol}
+\hypersetup{
+	colorlinks,
+	linkcolor={red!50!black},
+	citecolor={black},
+	urlcolor={blue!80!black}
+}
+\graphicspath{{figures/}}
+\DeclareMathOperator\sech{sech}
+\DeclareMathOperator\erf{erf}
+\graphicspath{{figures/}}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{ifthen}
+
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\re}{Re}
+\DeclareMathOperator{\im}{Im}
+\DeclareMathOperator{\Da}{Da}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+%\lstset{frame=tb,
+	%	language=Matlab,
+	%	aboveskip=3mm,
+	%	belowskip=3mm,
+	%	showstringspaces=false,
+	%	columns=flexible,
+	%	basicstyle={\small\ttfamily},
+	%	numbers=none,
+	%	numberstyle=\tiny\color{gray},
+	%	keywordstyle=\color{blue},
+	%	commentstyle=\color{dkgreen},
+	%	stringstyle=\color{mauve},
+	%	breaklines=true,
+	%	breakatwhitespace=true,
+	%	tabsize=3
+	%}
+%
+
+\lstset{language=[5.3]lua,
+	%	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{OliveGreen},
+	keywordstyle=\color{RoyalBlue},
+	numberstyle=\tiny\color{Gray},
+	stringstyle=\color{Orange},
+	basicstyle=\footnotesize\ttfamily,
+	breaklines=true, breakatwhitespace=true,     
+	breaklines=true,                 
+	captionpos=t,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	frame=tb,
+	prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+	postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\space\hookrightarrow\space}},
+}
+
+
+
+
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8.5in}
+\setlength{\evensidemargin}{0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.1in}
+
+\usepackage[section]{placeins}
+
+\let\Oldsubsection\subsection
+\renewcommand{\subsection}{\FloatBarrier\Oldsubsection}
+
+\let\Oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}{\FloatBarrier\Oldsubsubsection}
+
+
+%%%%%%%%%%%%%%%% Notes and things to add:
+% Maybe use widetilde instead of tilde
+% Clean up this header section over here
+% Double check all equation labels and references.
+
+
+
+\title{O$^+$-O Collision Cross Section}
+\author{Chirag R. Skolar}
+\date{\today}
+
+\begin{document}
+	\maketitle
+	
+	\tableofcontents
+	
+	% Intro discussing problem. 
+	
+	% Some section on how the MC sims work. 
+	
+	% Discussion of theory on the collision cross section
+	
+	% Discussion of numerical integration used to get spectra
+	
+	% Put all the tests I've done in an appendix
+	
+	\include{chapters/numerical_methods}
+	
+	KAPODKOADK \cite{goodwin2018_dissertation}
+	
+	
+	
+	
+	
+	%\bibliographystyle{plainnat}
+	\bibliography{reference}
+	\addcontentsline{toc}{section}{Reference}
+	
+	\begin{appendices}
+		\include{appendices/poleIntegrate_testing}
+	\end{appendices}
+	
+\end{document}

@@ -31,7 +31,7 @@ for n in range(len(U_i[0])):
     if U_i[0,n] == 0:
         nEnd = n-1
         break
-# nEnd = 600
+nEnd = 0
 
 # Calculate ISR spectra
 S = np.transpose(calcSpectra(np.transpose(M_i), M_e_exact, np.transpose(chi_i), chi_e_exact))

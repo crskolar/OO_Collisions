@@ -1,0 +1,169 @@
+\chapter{Pole Integration Testing}
+
+Put all of my tests here. 
+
+\section{Testing functions used within poleIntegrate}
+
+\subsection{test\_getVInterp}
+For \verb|test_getVInterp|, we have two poles at $2+i$ and $3-2i$ 
+and an input velocity mesh of ranging from 0 to 10 in increments of 0.1.
+Based on this, we can manually calculate that the expected velocity mesh for a \verb|mesh_n| of 11 to be
+[0, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 2, 2.2, 2.4, 2.8, 3, 3.2, 3.6, 3.8, 4, 4.6, 4.8, 5, 5.4, 5.6, 6, 6.2, 6.4, 7, 7.2, 8, 8.6, 8.8, 9, 9.6, 10]. 
+This has been tested and the function works as intended.
+
+\subsection{test\_getIntegrand}
+For \verb|test_getIntegrand|, we are trying to calculate 
+\begin{equation}
+	\frac{f_0(v)}{\prod_j (v-p_j)^{\mathcal{O}_j}},
+	\label{eq:a_integrand}
+\end{equation}
+where $f_0(v)$ is the distribution function and $p_j$ are the poles with orders $\mathcal{O}_j$.
+For an input of velocity of [0,1,2], an input distribution function of [2,3,1]
+and two poles at $2+i$ and $3-2i$ with orders 1 and 2 respectively. 
+Plugging these values into Eq.~\ref{eq:a_integrand} and using WolframAlpha, we get that the integrand should be
+[$-0.05207-0.04497i$ ,$-0.1875-0.1875i$, $-0.16-0.12i$].
+This has been tested and the function works as intended.
+
+\subsection{test\_plemelj}
+
+The exact solution for the integral over the real axis is provided by the Plemelj theorem, % Make a note on section whatever for where we talk about this more.
+and is 
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_0(v)}{\prod_j (v-p_j)^{\mathcal{O}_j}} = 
+	i \pi \sum_j \frac{ \sgn(\im[p_j]) f(\re[p_j])}{ \prod_{j\neq k} (p_j - p_k)^{\mathcal{O}_j}}.
+	\label{eq:a_plemelj}
+\end{equation} 
+This solution is technically for the limit as the poles approach the real axis. 
+Nevertheless, we can use it to test the numerical integration.
+For a velocity mesh of [1, 2, 3], 
+poles of $2-i$, $3+2i$, and $1-5i$ with orders 
+1, 2, and 1, respectively, the exact solution using Eq.~\ref{eq:a_plemelj} (and WolframAlpha) is
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_0(v)}{\prod_j (v-p_j)^{\mathcal{O}_j}} = 
+	i \pi \bigg(-\frac{11+7i}{170} \verb|Fv[1]| + \frac{96+247i}{140450} \verb|Fv[2]|  + \frac{26+15i}{901} \verb|Fv[0]|  \bigg) 
+\end{equation}
+This has been tested and the function works as intended.
+
+
+\section{Testing poleIntegrate}
+
+To test the pole integration, we will use a Guassian for the distribution function,
+\begin{equation}
+	f_0(v) = \exp(-v^2). 
+	\label{eq:norm_var_maxwellian}
+\end{equation}
+One can think of this as examining a Maxwellian distribution with a variable normalized by the thermal velocity.
+For obtaining the incoherent scatter spectra, we will need to use this pole integration for integrands 
+with singular poles at some $a-\gamma i$ as well as integrands with double poles at $a\pm \gamma i$.
+In addition, the Plemelj theorem holds true in the limit as $\gamma$ approaches zero. 
+Therefore, we will make plots of the integrals as functions of $\gamma$ to show this.
+For our case, we will have $\gamma$ vary and let $a=0.25$. 
+To relate this back to Eqs. (REF HERE), the imaginary component of the poles is $-\nu/k_\parallel$.
+For a proper comparison with the normalized variable Maxwellian in Eq.~\ref{eq:norm_var_maxwellian},
+we will let $\gamma = (\nu/k_\parallel)/v_{th}$. 
+Therefore, the following plots can provide guidance on the velocity resolution needed to obtain accurate results.
+
+First, we will test that the singular pole works as intended.
+For some pole $z$, the exact solution for this (from WolframAlpha) is
+\begin{equation}
+	p_1(z) \equiv \int_{-\infty}^\infty \frac{ \exp(-v^2)}{v - z} dv= 
+	-2 \sqrt{\pi} \Da(z) + \exp(-z^2) \ln(-1/z) + \exp(-z^2) \ln(z),
+	\label{eq:exact_single_pole}
+\end{equation}
+where $\Da$ is the Dawson function. % Have some sort of discusison of this in the numerical methods section and reference it here
+For utility later with the other solutions, we will call this solution $p_1(z)$.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=\linewidth]{p1.pdf}
+	\caption{Comparisons for a single pole integral calculation *Eq.~\ref{eq:exact_single_pole})
+		between the pole refined mesh integration function we made (blue circles), % Eventually say that better 
+		a naive trapezoidal integration not considering effects of poles (orange dots), and
+		the exact solution described by Eq.~\ref{eq:exact_single_pole} (black line)
+		for varying $\Delta v$.}
+	\label{f:single_pole_comparison}
+\end{figure}
+
+Fig.~\ref{f:single_pole_comparison} shows how our pole integration compares with 
+a naive trapezoidal integration and the exact solution from Eq.~\ref{eq:exact_single_pole},
+as the pole approaches the real axis.
+The approximate calculation uses a refined mesh of 101 points. 
+It was found that additional points did not affect the solution in an appreciable way regardless of choice of $\Delta v$.
+For large $\Delta v$, our pole integration clearly provides a better result
+compared to the naive trapezoidal integration. 
+As the $\Delta v$ decreases, both our approximation and the naive calculation improve.
+For sufficiently small $\Delta v$, within the range of $\gamma$ chosen, both our
+approximation and the naive solution converge.
+
+
+For a double pole at $v - z$ and $v-z^*$ (where $z^*$ is the complex conjugate of $z$), the analytical solution to the integral is
+\begin{equation}
+	\int_{-\infty}^\infty \frac{\exp (-v^2)}{(v-z)(v-z^*)} dv = 
+	\frac{i \Big[ g(z^*) - g(z)  \Big]}{2 \im(z)},
+	\label{eq:exact_double_pole}
+\end{equation}
+where $g(z)$ is the solution to the single pole integrand (Eq.~\ref{eq:exact_single_pole}).
+
+
+Fig.~\ref{f:double_pole_comparison} shows the comparisons to the exact solution for varying $\Delta v$.
+Here, we find that the finer mesh pole integration, for all $\Delta v$, correctly calculates that the 
+imaginary component of the solution is zero.
+The naive trapezoidal integration gets better with lower $\Delta v$, but still does not reach anything close to zero.
+For the real part of the solution, however, the finer mesh approximation we use does worse 
+than the naive integration. While hte naive integration is still incorrect, it is less incorrect than the pole refined mesh integration.
+Thus suggests for these double poles, we want to be the pole to be further from the real axis to obtain an accurate solution
+with the pole refined mesh integration. 
+Otherwise, perhaps the solution is to use the pole refined mesh integration for the imaginary component and the naive trapezoidal integration for the real component.
+
+
+\begin{figure}[!htb]
+	\centering
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e0}
+		\caption{$\Delta v = 10^0$}
+	\end{subfigure}
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-1}
+		\caption{$\Delta v = 10^{-1}$}
+	\end{subfigure}
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-2}
+		\caption{$\Delta v = 10^{-2}$}
+	\end{subfigure}
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-3}
+		\caption{$\Delta v = 10^{-3}$}
+	\end{subfigure}
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-4}
+		\caption{$\Delta v = 10^{-4}$}
+	\end{subfigure}
+	\begin{subfigure}{.32\textwidth}
+		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-5}
+		\caption{$\Delta v = 10^{-5}$}
+	\end{subfigure}
+	\caption{Comparisons for a double pole integral calculation
+		between the pole refined mesh integration function we made (blue solid line), % Eventually say that better 
+		a naive trapezoidal integration not considering effects of poles (orange dots), 
+		the exact solution described by Eq.~\ref{eq:exact_double_pole} (red dashed lined), 
+		and the Plemelj limit described by Eq.~\ref{eq:a_plemelj} (black dashed line)
+		for varying $\Delta v$.}
+	\label{f:double_pole_comparison}
+\end{figure}
+
+For a single pole at $z$ with order 2, the analytical solution to the integral is. 
+% Do this test at some point
+\begin{equation}
+	\int_{-\infty}^\infty \frac{ \exp(-v^2) }{(v-z)^2} dv = - 2 \sqrt{\pi} - 2 z g(z).
+\end{equation}
+
+
+\section{Testing spectra calculations}
+The following are tests to ensure the $U$, $M$, and $\chi$ are being calculated properly.
+Then, if those are correct, we can properly calculate the resulting ISR spectra for a particular ion distribution function.
+
+
+
+
+
+
