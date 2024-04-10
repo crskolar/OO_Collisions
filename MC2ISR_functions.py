@@ -7,6 +7,10 @@ from mpl_toolkits import mplot3d
 import scipy.special as sp
 from scipy.interpolate import interp1d
 
+# Build distribution function
+def maxwellian_norm(vperp, vpar, vth):
+    return np.exp(-(vperp**2+vpar**2)/vth**2)/vth**3/math.pi**1.5
+
 # Calculate the interpolated velocity space based on location of poles
 # Still need to do a basic test of this
 def getVInterp(poles, v_input, mesh_n):
@@ -264,9 +268,8 @@ def calcU_M_chi(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_
     
     return [M, chi, U, sum_M, sum_chi, sum_U]
     
-
 # This function will calculate U, M, chi, and their sums not using a 2D array but instead reading in the distribution function line by line for each perpendicular velocity
-def calcU_M_chi_iter(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_n, par_dir, wp, sum_U, sum_M, sum_chi, saveFreq):
+def calcU_M_chi_iter(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_n, par_dir, wp, sum_U, sum_M, sum_chi):
     for n in range(nStart,nEnd+1):
         # Calculate the base pole of this problem
         z = (omega - n*Oc-1j*nu)/kpar
@@ -277,18 +280,23 @@ def calcU_M_chi_iter(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, 
         doublePole = np.zeros_like(vperp)
         
         # Iterate through vperp
-        # for i in range(len(vperp)):
-        #     # Do the integrals for the three types of poles that show up in the calculations
-        #     # 1: A single pole at z with order 1
-        #     # 2: A single pole at z with order 2
-        #     # 3: A double pole at z and z* (each first order)
-        #     singlePole_Order1[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0[:,i], mesh_n, par_dir)
-        #     singlePole_Order2[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0[:,i], mesh_n, par_dir)
-        #     doublePole[i] = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0[:,i], mesh_n, par_dir)
+        for i in range(len(vperp)):
+            # Do the integrals for the three types of poles that show up in the calculations
+            # 1: A single pole at z with order 1
+            # 2: A single pole at z with order 2
+            # 3: A double pole at z and z* (each first order)
+            singlePole_Order1[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0[:,i], mesh_n, par_dir)
+            singlePole_Order2[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0[:,i], mesh_n, par_dir)
+            doublePole[i] = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0[:,i], mesh_n, par_dir)
         
-        # # Perform summation for U, M, and Chi
-        # sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
-        # sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
-        # sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
+        # Perform summation for U, M, and Chi
+        sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
+        sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
+        sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
     
+    # Perform remaining operations to calculate U, M, and Chi
+    U = -2*math.pi*1j*nu/kpar*sum_U
+    M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+    chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
     
+    return [M, chi, U, sum_M, sum_chi, sum_U]
