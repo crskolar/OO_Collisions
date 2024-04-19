@@ -4,6 +4,7 @@ Put all of my tests here.
 
 \section{Testing functions used within poleIntegrate}
 
+% Redo these tests, these are all now wrong that we changed the bounds of the outer part of the mesh refinement
 \subsection{test\_getVInterp}
 For \verb|test_getVInterp|, we have two poles at $2+i$ and $3-2i$ 
 and an input velocity mesh of ranging from 0 to 10 in increments of 0.1.
@@ -52,25 +53,24 @@ To test the pole integration, we will use a Guassian for the distribution functi
 	f_0(v) = \exp(-v^2). 
 	\label{eq:norm_var_maxwellian}
 \end{equation}
-One can think of this as examining a Maxwellian distribution with a variable normalized by the thermal velocity.
+One can think of this as examining a Maxwellian distribution with a velocity variable normalized by the thermal velocity.
 For obtaining the incoherent scatter spectra, we will need to use this pole integration for integrands 
-with singular poles at some $a-\gamma i$ as well as integrands with double poles at $a\pm \gamma i$.
-In addition, the Plemelj theorem holds true in the limit as $\gamma$ approaches zero. 
+with singular poles at some $a+\gamma i$ as well as integrands with double poles at $a\pm \gamma i$.
+%In addition, the Plemelj theorem holds true in the limit as $\gamma$ approaches zero. 
 Therefore, we will make plots of the integrals as functions of $\gamma$ to show this.
 For our case, we will have $\gamma$ vary and let $a=0.25$. 
 To relate this back to Eqs. (REF HERE), the imaginary component of the poles is $-\nu/k_\parallel$.
 For a proper comparison with the normalized variable Maxwellian in Eq.~\ref{eq:norm_var_maxwellian},
-we will let $\gamma = (\nu/k_\parallel)/v_{th}$. 
-Therefore, the following plots can provide guidance on the velocity resolution needed to obtain accurate results.
+we will let $\gamma = -(\nu/k_\parallel)/v_{th}$. 
+Therefore, the following plots can provide guidance on the velocity resolution needed to obtain accurate results.		
+Please see the Mathematica notebook \verb*|exact_poleIntegrate.nb| for the analytic solutions to these integrals. % Reword
 
-First, we will test that the singular pole works as intended.
-For some pole $z$, the exact solution for this (from WolframAlpha) is
+For a singular pole at $z$, the exact solution is
 \begin{equation}
-	p_1(z) \equiv \int_{-\infty}^\infty \frac{ \exp(-v^2)}{v - z} dv= 
-	-2 \sqrt{\pi} \Da(z) + \exp(-z^2) \ln(-1/z) + \exp(-z^2) \ln(z),
+	p_1(z) = \int_{-\infty}^\infty \frac{f}{v-z} dv = 
+	\exp(-z^2) \Bigg[ -\pi \erfi(z) + \ln \Big(-\frac{1}{z}\Big) + \ln\Big(\frac{1}{z}\Big)\Bigg]\\
 	\label{eq:exact_single_pole}
 \end{equation}
-where $\Da$ is the Dawson function. % Have some sort of discusison of this in the numerical methods section and reference it here
 For utility later with the other solutions, we will call this solution $p_1(z)$.
 
 \begin{figure}[!htb]
@@ -114,7 +114,6 @@ than the naive integration. While hte naive integration is still incorrect, it i
 Thus suggests for these double poles, we want to be the pole to be further from the real axis to obtain an accurate solution
 with the pole refined mesh integration. 
 Otherwise, perhaps the solution is to use the pole refined mesh integration for the imaginary component and the naive trapezoidal integration for the real component.
-
 
 \begin{figure}[!htb]
 	\centering

@@ -98,7 +98,7 @@ def calcUs_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu):
     Us = np.zeros_like(omega) + 1j*0.0
     
     # Iterate from 0 to nmax
-    for n in range(nmax+1):
+    for n in range(-nmax,nmax+1):
         # Calculate yn
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
@@ -114,15 +114,21 @@ def calcMs_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, Us):
     Ms = np.zeros_like(omega) + 1j*0.0
     
     # Iterate from 0 to nmax
-    for n in range(nmax+1):
+    for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
         Ms += np.exp(-yn**2)*sp.ive(n,kperp**2*rho_avg**2)
     
     return np.real(Ms*math.pi**.5/kpar/vth/np.abs(1+Us)**2-np.abs(Us)**2/nu/np.abs(1+Us)**2)
 
-def calcChis_Maxwellian(omega, nu, Us, alpha, Te, Ts):
-    return (1+Us*(1+1j*omega/nu))*Te*alpha**2/Ts/(1+Us)
+def calcChis_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, alpha, U, Te, Ts):
+    chi = np.zeros_like(omega) + 1j*0.0
+    for n in range(-nmax,nmax+1):
+        yn = (omega - n*Oc-1j*nu)/kpar/vth
+        
+        chi += sp.ive(n, kperp**2*rho_avg**2)*(1 - (omega-1j*nu)*(2*sp.dawsn(yn)+1j*math.pi**.5*np.exp(-yn**2))/(kpar*vth))
+        
+    return alpha**2*(Te/Ts)*chi/(1+U)
 
 
 # Calculate Us numerically
@@ -135,7 +141,7 @@ def calcUs(vpar, vperp, f0, omega, kpar, kperp, nmax, Oc, nu, mesh_n, par_dir):
     for k in range(len(omega)):
         # print(k)
         # Iterate through nmax
-        for n in range(nmax+1):
+        for n in range(-nmax,nmax+1):
             # Calculate the pole in the parallel integral
             pole = (omega[k] - n*Oc-1j*nu)/kpar
             
@@ -153,7 +159,7 @@ def calcMs(vpar, vperp, f0, omega, kpar, kperp, nmax, Oc, nu, mesh_n, par_dir, U
     # Iterate through omega
     for k in range(len(omega)):
         # Iterate through nmax
-        for n in range(nmax+1):
+        for n in range(-nmax,nmax+1):
             # Calculate poles in parallel integral
             poles = np.array([omega[k]-n*Oc+1j*nu,omega[k]-n*Oc-1j*nu])/kpar
             
@@ -182,7 +188,7 @@ def calcChis(vpar, vperp, f0, omega, kpar, kperp, nmax, Oc, nu, mesh_n, par_dir,
     # Iterate through omega
     for k in range(len(omega)):
         # Iterate through nmax
-        for n in range(0,nmax+1):
+        for n in range(-nmax,nmax+1):
             # Calculate pole in parallel integral
             pole = np.array([(omega[k] - n*Oc-1j*nu)/kpar])
             
@@ -205,7 +211,7 @@ def calcM_Chi(vpar, vperp, f0, omega, kpar, kperp, nmax, Oc, nu, mesh_n, par_dir
     # Iterate through omega
     for k in range(len(omega)):
         # Iterate through nmax
-        for n in range(nmax+1):
+        for n in range(-nmax,nmax+1):
             print("omega:", omega[k])
             print("n:", n)
             # Calculate the base pole of this problem
@@ -244,27 +250,32 @@ def calcSpectra(M_i, M_e, chi_i, chi_e):
 # If this is the first time you are using this, set sum_U, sum_M, and sum_chi to be 0+1j*0.0 (need to do this so that we retain the imagninary components)
 def calcU_M_chi(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_n, par_dir, wp, sum_U, sum_M, sum_chi):
     # Iterate from nStart to nEnd+1
-    for n in range(nStart, nEnd+1):
-        # Calculate the base pole of this problem
-        z = (omega - n*Oc-1j*nu)/kpar
+    for nBase in range(nStart, nEnd+1):
         
-        # Do the integrals for the three types of poles that show up in the calculations
-        # 1: A single pole at z with order 1
-        # 2: A single pole at z with order 2
-        # 3: A double pole at z and z* (each first order)
-        singlePole_Order1 = poleIntegrate(np.array([z]), np.array([1]), vpar, f0, mesh_n, par_dir)
-        singlePole_Order2 = poleIntegrate(np.array([z]), np.array([2]), vpar, f0, mesh_n, par_dir)
-        doublePole = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0, mesh_n, par_dir)
+        # Need to do this symmetrically. So must do positive and negative side
+        for sgn in [-1.0,1.0]:
+            n = sgn*nBase
+            print(n)
+            # Calculate the base pole of this problem
+            z = (omega - n*Oc-1j*nu)/kpar
+            
+            # Do the integrals for the three types of poles that show up in the calculations
+            # 1: A single pole at z with order 1
+            # 2: A single pole at z with order 2
+            # 3: A double pole at z and z* (each first order)
+            singlePole_Order1 = poleIntegrate(np.array([z]), np.array([1]), vpar, f0, mesh_n, par_dir)
+            singlePole_Order2 = poleIntegrate(np.array([z]), np.array([2]), vpar, f0, mesh_n, par_dir)
+            doublePole = poleIntegrate(np.array([z,np.conjugate(z)]), np.array([1,1]), vpar, f0, mesh_n, par_dir)
+            
+            # Perform summation for U, M, and Chi
+            sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
+            sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
+            sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
         
-        # Perform summation for U, M, and Chi
-        sum_U += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
-        sum_M += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
-        sum_chi += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
-    
-    # Perform remaining operations to calculate U, M, and Chi
-    U = -2*math.pi*1j*nu/kpar*sum_U
-    M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
-    chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+        # Perform remaining operations to calculate U, M, and Chi
+        U = -2*math.pi*1j*nu/kpar*sum_U
+        M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+        chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
     
     return [M, chi, U, sum_M, sum_chi, sum_U]
     

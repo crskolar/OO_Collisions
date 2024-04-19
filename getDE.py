@@ -34,7 +34,7 @@ def loadTxtFile(fileName, nr, nc):
 
 # Make a function to calculate the discretization error
 def calcDE(exact, approx, epsilon):
-    return np.abs( (exact - approx) / (exact + epsilon) )
+    return np.abs( (exact - approx) / np.max(np.abs(exact)) )
 
 def calcNorm(data, p):
     return np.sum(data**p)**(1.0/p)/len(data)**(1.0/p)
@@ -70,7 +70,7 @@ nui = nuin + nuii + nuie
 
 # Set ISR parameters
 k = 2*math.pi*nu_ISR/c
-angle = 0
+angle = 10
 theta = np.deg2rad(angle)
 kpar = k*np.cos(theta)
 kperp = k*np.sin(theta)
@@ -105,8 +105,8 @@ omega_bounds = round(cs*k*3,-3)
 omega = np.linspace(-omega_bounds,omega_bounds,31)
 
 # What orders do we want to consider for vperp and vpar
-meshes_par = np.linspace(-2,-6,9)
-meshes_perp = np.linspace(-1,-4,7)
+meshes_par = np.linspace(-4,-6,3)
+meshes_perp = np.linspace(-1,-3,3)
 
 # Save the meshes
 np.savetxt('meshes_par.txt',meshes_par)
@@ -126,11 +126,11 @@ DE_S_norm = loadTxtFile('DE_S_angle_%d_n_%d.txt' % (angle,nmax), npar, nperp)
 # Calculate exact U, M, chi, and S
 U_e_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue)
 M_e_exact = calcMs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, U_e_exact)
-chi_e_exact = calcChis_Maxwellian(omega, nue, U_e_exact, alpha, Te, Te)
+chi_e_exact = calcChis_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, alpha, U_e_exact, Te, Te)
 
 U_i_exact = calcUs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui)
 M_i_exact = calcMs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, U_i_exact)
-chi_i_exact = calcChis_Maxwellian(omega, nui, U_i_exact, alpha, Te, Ti)
+chi_i_exact = calcChis_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, alpha, U_i_exact, Te, Ti)
 S_exact = calcSpectra(M_i_exact, M_e_exact, chi_i_exact, chi_e_exact)
 
 # Initialize U, M, and chi approximations
@@ -149,9 +149,9 @@ for i in range(npar):
         
         if DE_S_norm[i,j] == 0:
             # Make perpendicular velocity mesh
-            dvperp = 10**meshes_perp[i]*vthi
-            vperp = np.arange(0,4*vthi+dvpar,dvpar)
-            
+            dvperp = 10**meshes_perp[j]*vthi
+            vperp = np.arange(0,4*vthi+dvperp,dvperp)
+            print(len(vperp))
             singlePoleOrder1_approx = np.zeros_like(vperp) + 1j*0.0
             singlePoleOrder2_approx = np.zeros_like(vperp) + 1j*0.0
             doublePole_approx = np.zeros_like(vperp) + 1j*0.0
@@ -167,23 +167,26 @@ for i in range(npar):
                 sum_chi = 0.0 + 1j*0.0
                 
                 # Iterate through n
-                for n in range(nmax+1):
-                    # Make the pole
-                    z = (omega-n*Oci-1j*nui)/kpar
+                for nBase in range(nmax+1):
                     
-                    for l in range(len(vperp)):
-                        # Make distribution function
-                        f0i = maxwellian_norm(vperp[l], vpar, vthi)
+                    for sgn in [-1.0,1.0]:
+                        n = sgn*nBase
+                        # Make the pole
+                        z = (omega-n*Oci-1j*nui)/kpar
                         
-                        # Calculate pole integrals
-                        singlePoleOrder1_approx[l] = poleIntegrate(np.array([z[k]]), np.array([1]), vpar, f0i, mesh_n, 0)
-                        singlePoleOrder2_approx[l] = poleIntegrate(np.array([z[k]]), np.array([2]), vpar, f0i, mesh_n, 0)
-                        doublePole_approx[l] = poleIntegrate(np.array([z[k],np.conjugate(z[k])]), np.array([1,1]), vpar, f0i, mesh_n, 0)
-                    
-                    sum_U += np.trapz(sp.jv(n,kperp*vperp/Oci)**2*vperp*singlePoleOrder1_approx,vperp)
-                    sum_M += np.trapz(sp.jv(n,kperp*vperp/Oci)**2*vperp*doublePole_approx,vperp)
-                    sum_chi += np.trapz(vperp*singlePoleOrder2_approx*sp.jv(n,kperp*vperp/Oci)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePoleOrder1_approx*sp.jv(n,kperp*vperp/Oci)*(sp.jv(n-1,kperp*vperp/Oci)-sp.jv(n+1,kperp*vperp/Oci)),vperp)
-                    
+                        for l in range(len(vperp)):
+                            # Make distribution function
+                            f0i = maxwellian_norm(vperp[l], vpar, vthi)
+                            
+                            # Calculate pole integrals
+                            singlePoleOrder1_approx[l] = poleIntegrate(np.array([z[k]]), np.array([1]), vpar, f0i, mesh_n, 0)
+                            singlePoleOrder2_approx[l] = poleIntegrate(np.array([z[k]]), np.array([2]), vpar, f0i, mesh_n, 0)
+                            doublePole_approx[l] = poleIntegrate(np.array([z[k],np.conjugate(z[k])]), np.array([1,1]), vpar, f0i, mesh_n, 0)
+                        
+                        sum_U += np.trapz(sp.jv(n,kperp*vperp/Oci)**2*vperp*singlePoleOrder1_approx,vperp)
+                        sum_M += np.trapz(sp.jv(n,kperp*vperp/Oci)**2*vperp*doublePole_approx,vperp)
+                        sum_chi += np.trapz(vperp*singlePoleOrder2_approx*sp.jv(n,kperp*vperp/Oci)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePoleOrder1_approx*sp.jv(n,kperp*vperp/Oci)*(sp.jv(n-1,kperp*vperp/Oci)-sp.jv(n+1,kperp*vperp/Oci)),vperp)
+                        
                 # Perform remaining operations to calculate U, M, and Chi
                 U_i_approx[k] = -2*math.pi*1j*nui/kpar*sum_U
                 M_i_approx[k] = (sum_M*2*math.pi/kpar**2 -np.abs(U_i_approx[k])**2/nui**2)*nui/np.abs(1+U_i_approx[k])**2

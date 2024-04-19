@@ -43,13 +43,14 @@ nuin = 3.67e-11*nn/1e6*Tr**.5*(1-0.064*np.log10(Tr))**2
 nuii = 0.22*ni/1e6/Ti**1.5
 nuie = me*nuei/mi
 nui = nuin + nuii + nuie
+# nui = 0.00001
 
 
 # Set ISR parameters
-k = 2*math.pi*nu_ISR/c
-theta = np.deg2rad(0)
-kpar = k*np.cos(theta)
-kperp = k*np.sin(theta)
+k_ISR = 2*math.pi*nu_ISR/c
+theta = np.deg2rad(10)
+kpar = k_ISR*np.cos(theta)
+kperp = k_ISR*np.sin(theta)
 
 # Calculate thermal velocities, gyroradii, gyrofrequencies, plasma frequency, and electron Debye length
 vthi = (2*kB*Ti/mi)**.5
@@ -61,14 +62,16 @@ rho_avge = vthe/Oce/2**.5
 wpi = (ni*e**2/mi/eps0)**.5
 wpe = (ne*e**2/me/eps0)**.5
 lambdaD = (eps0*kB*Te/(ne*e**2))**.5
+lambdaD_i = (eps0*kB*Ti/(ni*e**2))**.5
 
 print(nui/kpar/vthi)
 
 # Calculate alpha
-alpha = 1/k/lambdaD
+alpha = 1/k_ISR/lambdaD
+alpha_i = 1/k_ISR/lambdaD_i
 
 # Set parameters for calculation of modified ion distribution and ion suseptability
-nmax = 2000
+nmax = 0
 mesh_n = 500
 
 # Build distribution function
@@ -77,7 +80,7 @@ def maxwellian_norm(vperp, vpar, vth):
 
 # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
 cs = (5/3*kB*(Ti+Te)/mi)**.5
-omega_bounds = round(cs*k*3,-3)
+omega_bounds = round(cs*k_ISR*3,-3)
 omega = np.linspace(-omega_bounds,omega_bounds,31)
 
 # Make pole for some arbitrary n
@@ -87,11 +90,13 @@ z = (omega-n*Oci-1j*nui)/kpar
 # Calculate exact U, M, chi, and S
 U_e_exact = calcUs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue)
 M_e_exact = calcMs_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, U_e_exact)
-chi_e_exact = calcChis_Maxwellian(omega, nue, U_e_exact, alpha, Te, Te)
+# chi_e_exact = calcChis_Maxwellian(omega, nue, U_e_exact, alpha, Te, Te)
+chi_e_exact = calcChis_Maxwellian(omega, kpar, kperp, vthe, nmax, rho_avge, Oce, nue, alpha, U_e_exact, Te, Te)
 
 U_i_exact = calcUs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui)
 M_i_exact = calcMs_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, U_i_exact)
-chi_i_exact = calcChis_Maxwellian(omega, nui, U_i_exact, alpha, Te, Ti)
+# chi_i_exact = calcChis_Maxwellian(omega, nui, U_i_exact, alpha, Te, Ti)
+chi_i_exact = calcChis_Maxwellian(omega, kpar, kperp, vthi, nmax, rho_avgi, Oci, nui, alpha, U_i_exact, Te, Ti)
 S_exact = calcSpectra(M_i_exact, M_e_exact, chi_i_exact, chi_e_exact)
 
 U_i_approx = np.zeros_like(omega) + 1j*0.0
@@ -99,10 +104,10 @@ M_i_approx = np.zeros_like(omega) + 1j*0.0
 chi_i_approx = np.zeros_like(omega) + 1j*0.0
 S_approx = np.zeros_like(omega)
 
-dvpar_order = -2.0
+dvpar_order = -4.0
 dvpar = 10**dvpar_order*vthi
 vpar = np.arange(-4*vthi,4*vthi+dvpar,dvpar)
-dvperp = 10**-1*vthi
+dvperp = 10**-2*vthi
 vperp = np.arange(0,4*vthi+dvperp,dvperp)
 
 # Make a set of arrays for approximate pole integrals
@@ -176,7 +181,7 @@ for i in range(0,6):
 ax[0].set_title('$\Delta v_\parallel/v_{th_i}=10^{%.1f}$' % (dvpar_order))
 ax[5].set_xticklabels([-20000,0,20000])
 
-fig.savefig('Documentation/figures/test_full_spectrum_dvpar_%.1f.png' % (dvpar_order),format='png')
+# fig.savefig('Documentation/figures/test_full_spectrum_dvpar_%.1f.png' % (dvpar_order),format='png')
 
 
 

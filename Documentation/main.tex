@@ -6,6 +6,7 @@
 %\numberwithin{equation}{section}
 \usepackage{graphicx}
 \usepackage{float}
+%\restylefloat{table}
 \usepackage{subcaption}
 \usepackage{empheq}
 %\usepackage{slashbox}
@@ -17,6 +18,7 @@
 \usepackage[table,pdftex,dvipsnames]{xcolor}
 \usepackage[titletoc]{appendix}
 \usepackage{animate}
+\usepackage{makecell}
 
 \usepackage{multicol}
 \hypersetup{
@@ -37,11 +39,14 @@
 \DeclareMathOperator{\re}{Re}
 \DeclareMathOperator{\im}{Im}
 \DeclareMathOperator{\Da}{Da}
+\DeclareMathOperator{\erfi}{erfi}
+\DeclareMathOperator{\atan2}{atan2}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
+\newcommand{\RN}[1]{\MakeUppercase{\romannumeral #1}}
 %\lstset{frame=tb,
 	%	language=Matlab,
 	%	aboveskip=3mm,
@@ -129,6 +134,7 @@
 	
 	% Put all the tests I've done in an appendix
 	
+	\include{chapters/intro}	
 	\include{chapters/numerical_methods}
 	
 	KAPODKOADK \cite{goodwin2018_dissertation}
@@ -143,6 +149,7 @@
 	
 	\begin{appendices}
 		\include{appendices/poleIntegrate_testing}
+		\include{appendices/mathProofs}
 	\end{appendices}
 	
 \end{document}

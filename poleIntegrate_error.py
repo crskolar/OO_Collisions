@@ -14,6 +14,7 @@ import os
 # Make functions for exact solutions
 def p1(z):
     return np.exp(-z**2)*(-math.pi*sp.erfi(z)+np.log(-1/z)+np.log(z))
+    # return -2*math.pi**.5*sp.dawsn(z)+np.sign(np.imag(z))*1j*math.pi*np.exp(-z**2)
 
 def p2(z):
     return -2*math.pi**.5-2*z*p1(z)
@@ -61,7 +62,7 @@ def plotComparisons(poleType):
     
     # Make an array of gammas ranging from 1e-7 to 1e0
     gamma = np.logspace(-6,0,51)
-    real_z = 0.0 #25  # This is the real part of z. Is arbitrary. Possible that it is more important when z is closest to distribution function maximum?
+    real_z = 0.25  # This is the real part of z. Is arbitrary. Possible that it is more important when z is closest to distribution function maximum?
     z = real_z - 1j*gamma
 
     if poleType == "p1": # Pole at z of order 1
@@ -162,8 +163,8 @@ def plotComparisons(poleType):
     
     fig.savefig('Documentation/figures/'+poleType+'.pdf',format='pdf')
 
-# plotComparisons("p1")
-plotComparisons("p2")
+plotComparisons("p1")
+# plotComparisons("p2")
 # plotComparisons("pstar")
 # plotComparisons("p2_ones")
     
