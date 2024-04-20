@@ -187,6 +187,11 @@ for i in range(npar):
                         sum_M += np.trapz(sp.jv(n,kperp*vperp/Oci)**2*vperp*doublePole_approx,vperp)
                         sum_chi += np.trapz(vperp*singlePoleOrder2_approx*sp.jv(n,kperp*vperp/Oci)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePoleOrder1_approx*sp.jv(n,kperp*vperp/Oci)*(sp.jv(n-1,kperp*vperp/Oci)-sp.jv(n+1,kperp*vperp/Oci)),vperp)
                         
+                        # Make sure we are only doing this once for n=0 (otherwise this loop will double count zeroth order term)
+                        if n == 0:
+                            break
+                        
+                        
                 # Perform remaining operations to calculate U, M, and Chi
                 U_i_approx[k] = -2*math.pi*1j*nui/kpar*sum_U
                 M_i_approx[k] = (sum_M*2*math.pi/kpar**2 -np.abs(U_i_approx[k])**2/nui**2)*nui/np.abs(1+U_i_approx[k])**2
