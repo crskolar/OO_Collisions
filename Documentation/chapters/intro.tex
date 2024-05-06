@@ -1,0 +1,96 @@
+\chapter{Introduction}
+
+\section{O+O Stuff}
+
+\section{ISR Theory}
+\label{s:ISR-spectra}
+The scattering spectra, $S$, of an electromagnetic wave on a one ion species magnetized collisional plasma is
+\begin{equation}
+	S(\omega,\mathbf{k}) = 2 \Big| 1 - \frac{\chi_e}{\epsilon}\Big|^2
+	+ 2\Big|\frac{\chi_e}{\epsilon}\Big|^2 M_i,
+	\label{eq:scatterin-spectra}
+\end{equation}
+where $\chi$ is the susceptibility, 
+$M$ is the modified distribution function,
+and $\epsilon$ is the dielectric function defined as
+\begin{equation}
+	\epsilon = 1 + \chi_e + \chi_i.
+\end{equation}
+To obtain these values, we first need to calculate the collisional term, $U_s$. % Include something on the collisional terms
+For a species $s$ with normalized distribution function $f_{0s}(v)$, the 
+\begin{equation}
+	U_s = i \nu_s \sum_n \int 
+	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{\omega - k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}  
+	f_{0s}(v)   d\mathbf{v}^3 ,
+\end{equation}
+where $\nu$ is the total collision frequency,
+$\Omega_{c}$ is the gyrofrequency,
+$J_n$ is the $n$-th order Bessel function of the first kind,
+and the integrals are taken over all velocity space.
+The susceptibility is
+\begin{equation}
+	\chi_s = \frac{\omega_p^2}{k^2(1+U_s)} \sum_n \int 
+	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{\omega - k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}  
+	\mathbf{k} \cdot \frac{\partial f_{0s}}{\partial \mathbf{v}}   d\mathbf{v}^3 ,
+\end{equation} 
+where $\omega_p$ is the plasma frequency
+and the derivative term is defined as
+\begin{equation}
+	\mathbf{k} \cdot \frac{\partial f_{0s}}{\partial \mathbf{v}} = 
+	k_\parallel \frac{\partial f_{0s}}{\partial v_\parallel}
+	+ \frac{n \Omega_{cs}}{v_\perp} \frac{\partial f_{0s}}{\partial v_\perp}.
+\end{equation}
+The modified distribution function is 
+\begin{equation}
+	M_s = \frac{\nu_s}{|1+U_s|^2}
+	\Bigg( - \frac{|U_s|^2}{\nu_s^2} 
+	+ \sum_n \int 
+	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{(\omega - k_\parallel v_\parallel - n\Omega_{cs})^2 + \nu_s^2}
+	f_{0s}(v)   d\mathbf{v}^3 \Bigg).
+\end{equation}
+
+For a normalized Maxwellian distribution,
+\begin{equation}
+	f_{0s} = 
+	\frac{1}{v_{th,s}^3\pi^{3/2}}
+	\exp\bigg[- \frac{(v_\perp^2 + v_\parallel^2)}{v_{th,s}^2} \bigg],
+\end{equation}
+the collisional term, susceptibility, and modified distribution function are
+\begin{equation}
+	U_s = 
+	\frac{i \nu_{s}}{k_\parallel v_{th,s}} 
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) 
+	\Big[ 2 \Da(y_n) + i \sqrt{\pi} \exp(-y_n^2) \Big]
+\end{equation}
+\begin{equation}
+	\chi_s = 
+	\frac{\alpha^2}{1+U_s} \frac{T_e}{T_s} 
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) 
+	\bigg[ 1 - \frac{\omega-i\nu_s}{k_\parallel v_{th,s}} 
+	\Big( 2 \Da[y_n] + i \sqrt{\pi} \exp[-y_n^2] \Big)
+	\bigg]
+\end{equation}
+\begin{equation}
+	M_s = 
+	\Bigg[
+	\frac{1}{|1+U_s|^2} \frac{\sqrt{\pi}}{k_\parallel v_{th,s}}
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) \exp(-y_n^2)
+	\Bigg]
+	- \frac{|U_s|^2}{\nu_s |1+U_s|^2},
+\end{equation}
+where
+\begin{equation}
+	y_n = \frac{\omega-n\Omega_{cs}-i\nu_s}{k_\parallel v_{th,s}}
+\end{equation}
+\begin{equation}
+	\bar{\rho}_s = \frac{v_{th,s}}{\sqrt{2}\Omega_{cs}}
+\end{equation}
+\begin{equation}
+	\alpha = \frac{1}{k \lambda_{D_e}}.
+\end{equation}
+See Appendix~\ref{a:spectra} for the full derivation.
+
+

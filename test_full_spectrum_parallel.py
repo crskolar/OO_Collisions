@@ -107,7 +107,7 @@ S_approx = np.zeros_like(omega)
 dvpar_order = -4.0
 dvpar = 10**dvpar_order*vthi
 vpar = np.arange(-4*vthi,4*vthi+dvpar,dvpar)
-dvperp = 10**-2*vthi
+dvperp = 10**-1*vthi
 vperp = np.arange(0,4*vthi+dvperp,dvperp)
 
 # Make a set of arrays for approximate pole integrals

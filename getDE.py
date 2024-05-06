@@ -105,8 +105,8 @@ omega_bounds = round(cs*k*3,-3)
 omega = np.linspace(-omega_bounds,omega_bounds,31)
 
 # What orders do we want to consider for vperp and vpar
-meshes_par = np.linspace(-4,-6,3)
-meshes_perp = np.linspace(-1,-3,3)
+meshes_par = np.linspace(-4,-6,1)
+meshes_perp = np.linspace(-1,-6,20)
 
 # Save the meshes
 np.savetxt('meshes_par.txt',meshes_par)

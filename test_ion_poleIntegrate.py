@@ -79,7 +79,7 @@ def maxwellian_norm(vperp, vpar, vth):
 omega = 100.0
 
 # Make pole for some arbitrary n
-n = 1.0
+n = 0.0
 z = (omega-n*Oci-1j*nui)/kpar
 
 dvperp = 10**-1*vthi
@@ -100,9 +100,10 @@ gs.update(left=0.1, right=.96, bottom=.13, top=.92, wspace=0.015, hspace=.015)
 fig.patch.set_facecolor('white')
 ax = plt.subplot(gs[0])
 
-# ax.plot(vperp/vthi, np.real(singlePoleOrder2_exact), 'k-', linewidth=4)
+# ax.plot(vperp/vthi, np.imag(singlePoleOrder2_exact), 'k-', linewidth=4)
 
-meshes = np.array([-3,-3.5,-4,-4.5,-5,-5.5,-6,-6.5])
+# meshes = np.array([-3,-3.5,-4,-4.5,-5,-5.5,-6,-6.5])
+meshes = np.array([-2.,-5.])
 # meshes = np.array([-3.,-4])
 mesh_string = ['Exact']
 
@@ -128,7 +129,7 @@ for k in range(len(meshes)):
         singlePoleOrder1_approx[i] = poleIntegrate(np.array([z]), np.array([1]), vpar, f0i, mesh_n, 0)
         singlePoleOrder2_approx[i] = poleIntegrate(np.array([z]), np.array([2]), vpar, f0i, mesh_n, 0)
         
-    # ax.plot(vperp/vthi, np.real(singlePoleOrder2_approx), '--', linewidth=3,color=colors[k])
+    # ax.plot(vperp/vthi, np.imag(singlePoleOrder2_approx), '--', linewidth=3,color=colors[k])
     
     chi_approx[k] = np.trapz(vperp*singlePoleOrder2_approx*sp.jv(n,kperp*vperp/Oci)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePoleOrder1_approx*sp.jv(n,kperp*vperp/Oci)*(sp.jv(n-1,kperp*vperp/Oci)-sp.jv(n+1,kperp*vperp/Oci)),vperp)
     
@@ -138,11 +139,11 @@ for k in range(len(meshes)):
 # ax.set_xlim(np.min(vperp/vthi),np.max(vperp/vthi))
 # ax.legend(mesh_string,ncols=2)
 # ax.set_title('$\omega=%d,  n=%d,  mesh=%d$' % (omega,n,mesh_n))
-# ax.grid()
+ax.grid()
 
 ax.plot(meshes,np.real(chi_approx),'.')
-ax.plot(meshes,np.imag(chi_approx),'.')
-ax.set_title('$\Delta v_\perp=10^{-1}$')
+# ax.plot(meshes,np.imag(chi_approx),'.')
+# ax.set_title('$\Delta v_\perp=10^{-1}$')
 # fig.savefig('Documentation/figures/test_p2_omega_%d_' % (omega) + 'n_%d_' % (n) + 'mesh_%d' % (mesh_n) + '.png',format='png')
 
 

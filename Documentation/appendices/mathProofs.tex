@@ -1,0 +1,616 @@
+\chapter{Derivations}
+
+\section{$\ln(-1/z)-\ln(1/z)=\sgn\big[\im(z)\big]i\pi$}
+\label{s:ln1z}
+
+This section proves that for some complex number $z = a + bi$ with $b \neq 0$, then
+\begin{equation}
+	\ln\Big(-\frac{1}{z}\Big) - \ln\Big(\frac{1}{z}\Big) = \sgn[\im(z)\big] i \pi.
+	\label{eq:ln1z}
+\end{equation}
+In general, we can use log laws to show that this is somewhat the case.
+\begin{align}
+	\ln\Big(-\frac{1}{z}\Big) - \ln\Big(\frac{1}{z}\Big) 
+	&= \ln(-1) - \ln(z) - \big[ \ln(1) - \ln(z) \big] \nonumber \\
+	&= i \pi - \ln(z) - 0 + \ln(z) \nonumber \\
+	&= i \pi
+\end{align}
+This is slightly different than Eq~.\ref{eq:ln1z} by a 
+factor of $\sgn(b)$. 
+Generally, this should be fine because complex logarithms are multi-valued functions
+that are defined by the primary choice of angle plus $2 n \pi$ where $n$ is an arbitrary integer.
+However, when doing the actual calculation (with actual numbers in Python or Mathematica), 
+we find that the primary choice of angle is dependent on the sign of $b$.
+Thus, we will prove this dependency here and thus simplify our solutions significantly.
+
+Consider a complex number $z=a+bi$ with $b \neq 0$. 
+We can rewrite this in exponential form as $z = r_0 \exp(i \theta_0)$.
+We can obtain the angle $\theta_0$ by obtaining the argument of the complex number, 
+or in others taking the inverse tangent.
+However, we want the range of the inverse tangent to be in $(-\pi,\pi]$ instead
+of the usual $(-\pi/2,\pi/2)$.
+Therefore, we will use the $\atan2$ function, or the two argument inverse tangent function
+that includes information about the quadrant of the complex number.
+Thus, the angle is defined fully as the following depending on several characteristics of $a$ and $b$.
+Table~\ref{t:theta0} shows how to obtain $\theta_0$ based on where $z$ is on the complex plane.
+We can also get what $\tan^{-1}(b/a)$ is in terms of $\theta_0$, which will be important for 
+proving Eq.~\ref{eq:ln1z}.
+\begin{table}[H]
+	\centering
+	\caption{Obtaining $\theta_0$ based on $\atan2$ function depending on location of $z$ in the complex plane.
+		Then, we obtain $\tan^{-1}(b/a)$ in terms of $\theta_0$, which is used for future calculations.
+		Note we assume that $b\neq0$.}
+		\label{t:theta0}
+	\begin{tabular}{c|c|c|c}
+	\makecell[t]{\textbf{Quadrant \RN{2}}\\
+		$a<0\ \&\ b > 0$ \\
+		$\theta_0 = \tan^{-1} \big( \frac{b}{a} \big) + \pi$ \\
+		$\tan^{-1} \big( \frac{b}{a} \big) = \pi - \theta_0$  \vspace{2pt}}
+	&
+	\makecell[t]{\textbf{Positive Complex Axis} \\
+		$a=0\ \&\ b > 0$ \\
+		$\theta_0 = \frac{\pi}{2}$ }
+	&
+	\makecell[t]{\textbf{Quadrant \RN{1}}\\
+		$a>0\ \&\ b > 0$ \\
+		$\theta_0 = \tan^{-1} \big( \frac{b}{a} \big)$ \\}
+	&
+	\makecell[t]{\textbf{Positive Real Axis}\\
+	$a> 0\ \&\ b = 0$ \\
+	$\theta_0 = 0$
+	}
+	\\
+	\hline
+	\makecell[t]{\textbf{Quadrant \RN{3}}\\
+		$a<0\ \&\ b < 0$ \\
+		$\theta_0 = \tan^{-1} \big( \frac{b}{a} \big) - \pi$ \\
+		$\tan^{-1} \big( \frac{b}{a} \big) = -\pi - \theta_0$  }
+	&
+	\makecell[t]{\textbf{Negative Complex Axis} \\
+		$a=0\ \&\ b < 0$ \\
+		$\theta_0 = -\frac{\pi}{2}$ }
+	& 
+	\makecell[t]{\textbf{Quadrant \RN{4}}\\
+		$a> 0 \ \&\ b < 0$ \\
+		$\theta_0 = \tan^{-1} \big( \frac{b}{a} \big)$ \\} 
+	&
+	\makecell[t]{\textbf{Negative Real Axis}\\
+		$a < 0\ \&\ b = 0$ \\
+		$\theta_0 = \pi$
+	}
+	\end{tabular}
+\end{table}
+It is not $z$ that shows up in Eq.~\ref{eq:ln1z} but $1/z$ and $-1/z$. 
+So let us determine what these are. 
+The reciprocal of $z$ is
+\begin{equation}
+	\frac{1}{z} =  \frac{1}{a+bi}.
+\end{equation}
+To get to an easy to use form, multiply the top and bottom by the complex conjugate of $z$
+and then define $1/z$ as
+\begin{equation}
+	\frac{1}{z} = \frac{a-bi}{a^2 + b^2} = r_1 \exp(i \theta_1).
+\end{equation}
+Note how the angle of the reciprocal of $z$ is the same as the angle of the complex conjugate of $z$.
+This is effectively saying that the quadrant that $1/z$ is in is flipped up/down.
+Then, we can calculate $\theta_1$ in a similar way to how we did for $\theta_0$.
+In addition, we can relate $\theta_1$ to $\theta_0$ through $\tan^{-1}(b/a)$ because the inverse tangent is an odd function.
+Table~\ref{t:theta1} is a similar table to Table~\ref{t:theta0} and is based on where $z$ (note, not $1/z$) is in the complex plane.
+\begin{table}[H]
+	\centering
+	\caption{Obtaining $\theta_1$ for $1/z$ based on $\atan2$ function depending on location of $z$ in the complex plane.
+		Then we relate it back to $\theta_0$ through $\tan^{-1}(b/a)$ using the relationships from Table~\ref{t:theta0}.}
+	\label{t:theta1}
+	\begin{tabular}{c|c|c|c}
+		\makecell[t]{\textbf{Quadrant \RN{2}}\\
+			$a<0\ \&\ b > 0$ \\
+			$1/z$ in Quadrant \RN{3} \\
+			$\begin{aligned}
+				\theta_1 
+				&= \tan^{-1}\big(\tfrac{-b}{a} \big) - \pi \\
+				&= - \tan^{-1}\big(\tfrac{b}{a} \big) - \pi \\
+				&= -(\pi - \theta_0) - \pi \\
+				&= \theta_0 - 2 \pi
+			\end{aligned} $ }
+		&
+		\makecell[t]{\textbf{Positive Complex Axis} \\
+			$a=0\ \&\ b > 0$ \\
+			$1/z$ along negative complex axis \\
+			$\theta_1 = -\frac{\pi}{2}$ }
+		&
+		\makecell[t]{\textbf{Quadrant \RN{1}}\\
+			$a>0\ \&\ b > 0$ \\
+			$1/z$ in Quadrant \RN{4} \\
+			$\begin{aligned}
+				\theta_1 
+				&= \tan^{-1}\big(\tfrac{-b}{a} \big) \\
+				&= -\tan^{-1}\big(\tfrac{b}{a} \big) \\
+				&= -\theta_0
+			\end{aligned}$}
+		&
+		\makecell[t]{\textbf{Positive Real Axis}\\
+			$a> 0\ \&\ b = 0$ \\
+			$1/z$ along positive real axis\\
+			$\theta_1 = 0$
+		}
+		\\
+		\hline
+		\makecell[t]{\textbf{Quadrant \RN{3}}\\
+			$a<0\ \&\ b < 0$ \\
+			$1/z$ in Quadrant \RN{2} \\
+			$\begin{aligned}
+				\theta_1 
+				&= \tan^{-1}\big(\tfrac{-b}{a} \big) + \pi \\
+				&= - \tan^{-1}\big(\tfrac{b}{a} \big) + \pi \\
+				&= -(-\pi - \theta_0) + \pi \\
+				&= \theta_0 + 2 \pi
+			\end{aligned} $}
+		&
+		\makecell[t]{\textbf{Negative Complex Axis} \\
+			$a=0\ \&\ b < 0$ \\
+			$1/z$ along positive complex axis \\
+			$\theta_1 = \frac{\pi}{2}$ }
+		& 
+		\makecell[t]{\textbf{Quadrant \RN{4}}\\
+			$a>0\ \&\ b > 0$ \\
+			$1/z$ in Quadrant \RN{1} \\
+			$\begin{aligned}
+				\theta_1 
+				&= \tan^{-1}\big(\tfrac{-b}{a} \big) \\
+				&= -\tan^{-1}\big(\tfrac{b}{a} \big) \\
+				&= -\theta_0
+			\end{aligned}$}
+		&
+		\makecell[t]{\textbf{Negative Real Axis}\\
+			$a< 0\ \&\ b = 0$ \\
+			$1/z$ is along negative real axis\\
+			$\theta_1 = \pi$
+		}
+	\end{tabular}
+\end{table}
+Now we need to do a similar analysis with $-1/z$, which we will define (based on $1/z$) as 
+\begin{equation}
+	-\frac{1}{z} = \frac{-a + bi}{a^2 + b^2} = r_2 \exp(i \theta_2).
+\end{equation}
+This is effectively saying that the quadrant that $-1/z$ is in is flipped left/right compared to $z$.
+Note that $-1/z$ and $1/z$ should have the same modulus.
+Therefore, $r_1 = r_2$.
+Table~\ref{t:theta2} shows the same kind of analysis as Table~\ref{t:theta1} but for $\theta_2$.
+\begin{table}[H]
+	\centering
+	\caption{Obtaining $\theta_2$ for $-1/z$ based on $\atan2$ function depending on location of $z$ in the complex plane.
+		Then we relate it back to $\theta_0$ through $\tan^{-1}(b/a)$ using the relationships from Table~\ref{t:theta0}.}
+	\label{t:theta2}
+	\begin{tabular}{c|c|c|c}
+		\makecell[t]{\textbf{Quadrant \RN{2}}\\
+			$a<0\ \&\ b > 0$ \\
+			$-1/z$ in Quadrant \RN{1} \\
+			$\begin{aligned}
+				\theta_2
+				&= \tan^{-1}\big(\tfrac{b}{-a} \big) \\
+				&= - \tan^{-1}\big(\tfrac{b}{a} \big) \\
+				&= -(\pi - \theta_0)  \\
+				&= \theta_0 - \pi
+			\end{aligned} $ }
+		&
+		\makecell[t]{\textbf{Positive Complex Axis} \\
+			$a=0\ \&\ b > 0$ \\
+			$-1/z$ along positive complex axis \\
+			$\theta_2 = \frac{\pi}{2}$ }
+		&
+		\makecell[t]{\textbf{Quadrant \RN{1}}\\
+			$a>0\ \&\ b > 0$ \\
+			$-1/z$ in Quadrant \RN{2} \\
+			$\begin{aligned}
+				\theta_2
+				&= \tan^{-1}\big(\tfrac{b}{-a} \big) + \pi\\
+				&= -\tan^{-1}\big(\tfrac{b}{a} \big) + \pi\\
+				&= -\theta_0 + \pi
+			\end{aligned}$}
+		&
+		\makecell[t]{\textbf{Positive Real Axis}\\
+			$a> 0\ \&\ b = 0$ \\
+			$-1/z$ along negative real axis\\
+			$\theta_2 = \pi$
+		}
+		\\
+		\hline
+		\makecell[t]{\textbf{Quadrant \RN{3}}\\
+			$a<0\ \&\ b < 0$ \\
+			$-1/z$ in Quadrant \RN{4} \\
+			$\begin{aligned}
+				\theta_2
+				&= \tan^{-1}\big(\tfrac{b}{-a} \big) \\
+				&= - \tan^{-1}\big(\tfrac{b}{a} \big) \\
+				&= -(-\pi - \theta_0)\\
+				&= \theta_0 + \pi
+			\end{aligned} $}
+		&
+		\makecell[t]{\textbf{Negative Complex Axis} \\
+			$a=0\ \&\ b < 0$ \\
+			$-1/z$ along negative complex axis \\
+			$\theta_2 = -\frac{\pi}{2}$ }
+		& 
+		\makecell[t]{\textbf{Quadrant \RN{4}}\\
+			$a>0\ \&\ b > 0$ \\
+			$-1/z$ in Quadrant \RN{3} \\
+			$\begin{aligned}
+				\theta_2
+				&= \tan^{-1}\big(\tfrac{b}{-a} \big) -\pi \\
+				&= -\tan^{-1}\big(\tfrac{b}{a} \big) -\pi\\
+				&= -\theta_0 - \pi
+			\end{aligned}$}
+		&
+		\makecell[t]{\textbf{Negative Real Axis}\\
+			$a< 0\ \&\ b = 0$ \\
+			$-1/z$ along positive real axis\\
+			$\theta_2 = 0$
+		}
+	\end{tabular}
+\end{table}
+
+Now, we must evaluate $\ln(-1/z)-\ln(1/z)$. 
+We do this using the definition of a logarithm on the complex plane.
+For example, if some value $z = r \exp(i \theta)$,
+\begin{equation}
+	\ln(z) = \ln(r) + i \theta + 2 n \pi,
+\end{equation}
+where $n$ is an arbitrary integer. 
+By convention, the principal value is based on the angle within $(-\pi,\pi]$.
+Thus (neglecting the $2n\pi$ term), we can evaluate $\ln(-1/z)-\ln(1/z)$ as
+\begin{equation}
+	\ln\Big(-\frac{1}{z} \Big) = \ln \Big(\frac{1}{z}\Big) 
+	= \ln (r_2) + i \theta_2 - \ln(r_1) - i \theta_1
+	= i(\theta_2 - \theta_1).
+\end{equation}
+Since $r_1=r_2$, these terms cancel, leaving only the angles.
+Table~\ref{t:ln} shows the result of this calculation based
+on the location of $z$ in the complex plane and Tables~\ref{t:theta1}
+and \ref{t:theta2} for $\theta_1$ and $\theta_2$, respectively.
+\begin{table}[H]
+	\centering
+	\caption{Evaluation of $\ln(-1/z)-\ln(1/z)$ based on 
+		Tables~\ref{t:theta1} and \ref{t:theta2}.}
+	\label{t:ln}
+	\begin{tabular}{c|c|c|c}
+		\makecell[t]{\textbf{Quadrant \RN{2}}\\
+			$a<0\ \&\ b > 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(\theta_0-\pi-\theta_0+2\pi)\\
+				&= i\pi 
+			\end{aligned} $ }
+		&
+		\makecell[t]{\textbf{Positive Complex Axis} \\
+			$a=0\ \&\ b > 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(\pi/2+\pi/2)\\
+				&= i\pi 
+			\end{aligned} $ }
+		&
+		\makecell[t]{\textbf{Quadrant \RN{1}}\\
+			$a>0\ \&\ b > 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(-\theta_0+\pi+\theta_0)\\
+				&= i\pi 
+			\end{aligned} $}
+		&
+		\makecell[t]{\textbf{Positive Real Axis}\\
+			$a> 0\ \&\ b = 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1) 
+				&= i(\pi-0) \\
+				&= i \pi
+			\end{aligned}$
+		}
+		\\
+		\hline
+		\makecell[t]{\textbf{Quadrant \RN{3}}\\
+			$a<0\ \&\ b < 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(\theta_0+\pi-\theta_0-2\pi)\\
+				&= -i\pi 
+			\end{aligned} $}
+		&
+		\makecell[t]{\textbf{Negative Complex Axis} \\
+			$a=0\ \&\ b < 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(-\pi/2-\pi/2)\\
+				&= -i\pi 
+			\end{aligned} $ }
+		& 
+		\makecell[t]{\textbf{Quadrant \RN{4}}\\
+			$a>0\ \&\ b > 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1)
+				&= i(-\theta_0-\pi+\theta_0)\\
+				&= -i\pi 
+			\end{aligned} $} 
+		&
+		\makecell[t]{\textbf{Negative Real Axis}\\
+			$a< 0\ \&\ b = 0$ \\
+			$\begin{aligned}
+				i(\theta_2-\theta_1) 
+				&= i(0-\pi) \\
+				&= -i \pi
+			\end{aligned}$}
+	\end{tabular}
+\end{table}
+
+Based on these tables and the physics of what's going on, 
+we find that because $b<0$ always, the solution will always be
+$-i\pi$.
+%
+%What we find is that the top rows, where $b>0$, we get $i \pi$
+%and for the bottom rows, where $b<0$, we get $-i\pi$.
+%Therefore, we can rewrite this as $\sgn(b)i\pi$.
+%The imaginary component of $z$ was defined to be $b$
+%showing that Eq.~\ref{eq:ln1z} is correct.
+\begin{equation}
+	\ln\Big(-\frac{1}{z}\Big) - \ln\Big(\frac{1}{z}\Big) = \sgn[\im(z)\big] i \pi.
+\end{equation}
+
+
+
+\section{Analytical Solutions for ISR Spectra}
+\label{a:spectra}
+This section shows how we get into the nice forms of the analytical solutions for the scattering spectra
+and its internal terms for a Maxwellian.
+
+As shown in Sec.~\ref{s:ISR-spectra}, the equation for the scattering spectra is
+\begin{equation}
+	S(\omega,\mathbf{k}) = 2 \Big| 1 - \frac{\chi_e}{\epsilon}\Big|^2
+	+ 2\Big|\frac{\chi_e}{\epsilon}\Big|^2 M_i.
+\end{equation}
+The dielectric function is
+\begin{equation}
+	\epsilon = 1 + \chi_e + \chi_i.
+\end{equation}
+We can calculate this using the collisional term, susceptibility, and modified distribution function:
+\begin{equation}
+	U_s = i\nu_s \sum_n \int
+	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{\omega-k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}
+	f_{0s}(\mathbf{v}) d\mathbf{v} ,
+\end{equation}
+\begin{equation}
+	\chi_s = \frac{\omega_{ps}^2}{k^2(1+U_s)}
+	\sum_n \int
+	\frac{J_n^2 \Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{\omega-k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}
+	\mathbf{k} \cdot \frac{\partial f_{0s}}{\partial \mathbf{v}} d\mathbf{v},
+\end{equation}
+\begin{equation}
+	M_s = \frac{\nu_s}{|1+U_s|^2}
+	\Bigg( - \frac{|U_s|^2}{\nu_s^2} 
+	+ \sum_n \int 
+	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
+	{(\omega - k_\parallel v_\parallel - n\Omega_{cs})^2 + \nu_s^2}
+	f_{0s}(v)   d\mathbf{v}^3 \Bigg),
+\end{equation}
+where 
+\begin{equation}
+	\mathbf{k} \cdot \frac{\partial f_{0s}(v) }{\partial \mathbf{v}} = 
+		k_\parallel \frac{\partial f_{0s}}{\partial v_\parallel}
+		+ \frac{n \Omega_{cs}}{v_\perp} \frac{\partial f_{0s}}{\partial v_\perp}
+\end{equation}
+We can solve these integrals in cylindrical coordinates using 
+\begin{equation}
+	\int f_{0s}(\mathbf{v}) d\mathbf{g} = \int_0^{2\pi} \int_0^\infty \int_{-\infty}^\infty v_\perp f_{0s}(\mathbf{v}) 
+	dv_\parallel dv_\perp d\phi.
+\end{equation}
+
+We can therefore, find the spectra using these equations
+for an arbitrary ion distribution function.
+However, depending on the shape of the distribution function, there may or may not be an
+analytical solution for the scattering spectra.
+For the case a Maxwellian distribution, 
+\begin{equation}
+	f_{0s} = v_{th,s}^{-3} \pi^{-3/2} \exp\bigg[ - \frac{(v_\perp^2 + v_\parallel^2)}{v_{th,s}^2} \bigg],
+\end{equation}
+we can find an analytical solution.
+These integrals are messy to solve so we will use Mathematica (see the notebook \verb|calcS_Maxwellian.nb| for the analytical solutions)
+
+\subsection{Useful Relationships}
+The following relationships will be useful in simplifying the Mathematica output
+\begin{equation}
+	y_n = \frac{\omega - n \Omega_{cs}- i \nu_s}{k_\parallel v_{th,s}}
+	\label{eq:a_yn}
+\end{equation}
+\begin{equation}
+	\bar{\rho}_s = \frac{v_{th,s}}{\sqrt{2} \Omega_{cs}}
+	\label{eq:a_rho}
+\end{equation}
+\begin{equation}
+	2 \Da(z) = \sqrt{\pi} \exp(-z^2) \erfi(z)
+	\label{eq:a_Daw}
+\end{equation}
+\begin{equation}
+	\ln\bigg( -\frac{1}{v_{th,s}y_n} \bigg) - \ln\bigg( \frac{1}{v_{th,s}y_n} \bigg) = -i \pi
+	\label{eq:a_ln}
+\end{equation}
+\begin{equation}
+	k_\perp^2 \bar{rho}_s^2 = \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}
+	\label{eq:a_k2rho2}
+\end{equation}
+\begin{equation}
+	-y_n = \frac{i\nu + n\Omega{cs}-\omega}{k_\parallel v_{th,s}}
+	\label{eq:a_-yn}
+\end{equation}
+\begin{equation}
+	-y_n^2 = \frac{\big(\nu-in\Omega_{cs}+i\omega\big)^2}{k_\parallel^2 v_{th,s}^2}
+	\label{eq:a_-yn2}
+\end{equation}
+\begin{equation}
+	\erfi(-z) = -\erfi(z) 
+	\label{eq:a_erfi_odd}
+\end{equation}
+\begin{equation}
+	\frac{1}{v_{th,s}y_n} = \frac{k_\parallel}{-i\nu_s-n\Omega_{cs}+\omega}
+	\label{eq:a_vthyn}
+\end{equation}
+\begin{equation}
+	i \erfi(y_n) = \erf \bigg( \frac{\nu_s - i n\Omega_{cs} + i \omega}{k_\parallel v_{th,s}}  \bigg)
+	\label{eq:a_erfiyn}
+\end{equation}
+\begin{equation}
+	\alpha = \frac{1}{k \lambda_{D_e}}
+	\label{eq:a_alpha}
+\end{equation}
+\begin{equation}
+	\alpha^2 \frac{T_e}{T_s} = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2}
+	\label{eq:a_alpha2}
+\end{equation}
+
+\subsection{Collisional Term, $U_s$}
+The output from Mathematica for the collisional term is
+\begin{multline}
+	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi}v_{th,s}}
+	\exp \Bigg[ \frac{\big( \nu_s - i n\Omega_{cs} + i \omega \big)^2}{k_\parallel^2 v_{th,s}^2} \Bigg]
+	\sum_n I_n \bigg( \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}\bigg)
+	\Bigg[\pi \erfi \bigg( \frac{i\nu_s + n\Omega_{cs} - \omega}{k_\parallel v_{th,s}}  \bigg)   \\
+	+ \ln \bigg( \frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} \bigg)
+	- \ln \bigg( \frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega} \bigg)
+	\Bigg]
+\end{multline}
+Using the relationships from Eqs.~\ref{eq:a_k2rho2}, \ref{eq:a_-yn}, \ref{eq:a_-yn2}, and \ref{eq:a_vthyn}, we get
+\begin{equation}
+	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi} v_{th,s}}
+	\exp \Big(-y_n^2 - k_\perp^2 \bar{\rho}_s^2 \Big)
+	\sum_n I_n \Big( k_\perp^2 \bar{\rho}_s^2 \Big)	
+	\Bigg[ \pi \erfi\Big(-y_n\Big)
+	+ \ln\bigg( -\frac{1}{v_{th} y_n} \bigg)
+	-\ln\bigg( \frac{1}{v_{th} y_n} \bigg)
+	\Bigg]
+\end{equation}
+Distribute inside the $-1/\sqrt{\pi}$ and use the relationships
+from Eqs.~\ref{eq:a_ln} and \ref{eq:a_erfi_odd} to get
+\begin{equation}
+	U_s = \frac{i\nu_s}{k_\parallel v_{th,s}}
+	\exp(-y_n^2)
+	\exp(-k_\perp^2 \bar{\rho}_s^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2) 
+	\Bigg[ - \pi \bigg(-\erfi\Big[y_n\Big]\bigg) - 
+	\bigg(- \frac{i\pi}{\sqrt{\pi}} \bigg)
+\end{equation}
+Distribute the $\exp(-y_n^2)$.
+\begin{equation}
+	U_s = \frac{i \nu_s}{k_\parallel v_{th,s}}
+	\exp(-k_\perp^2 \bar{\rho}_s^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[ \sqrt{\pi} \exp(-y_n^2) \erfi(y_n) + i \sqrt{\pi} \exp(-y_n^2) \Bigg]
+\end{equation}
+Use relationship in Eq.~\ref{eq:a_Daw} to get
+\begin{equation}
+	U_s = \frac{i \nu_s}{k_\parallel v_{th,s}}
+	\exp(-k_\perp^2 \bar{\rho}_s^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	\bigg[ 2\Da(y_n) + i \sqrt{\pi} \exp(-y_n^2)  \bigg],
+\end{equation}
+which is the final nice looking result.
+
+
+\subsection{Susceptibility, $\chi$}
+The result from Mathematica is
+\begin{multline}
+	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel^2 k^2 \sqrt{\pi} v_{th,s}^3}
+		\sum_n \exp \bigg( - \frac{k_\perp^2 v_{th,s}^2}{2 \Omega_{cs}^2} \bigg)
+		I_n \bigg( \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}  \bigg)
+		\Bigg[ k_\parallel \sqrt{\pi} v_{th,s} 
+		+ \exp\bigg( \frac{\big[ \nu_s - i n\Omega_{cs} + i\omega  \big]^2}{k_\parallel v_{th,s}^2} \bigg) (\nu_s+i\omega) \\
+		\bigg( \pi \erf \Big[ \frac{\nu_s - i n\Omega_{cs} + i\omega}{k_\parallel v_{th,s}} \Big]
+		- i \Big[
+		\ln \Big( \frac{k_\parallel}{i\nu_s+n\Omega_{cs}-\omega }\Big)
+		- \ln \Big( \frac{k_\parallel}{-i\nu_s-n\Omega_{cs}+\omega }\Big)
+		\Big] \bigg) \Bigg] 
+		\frac{1}{1+U_s}
+\end{multline}
+Use Eqs.~\ref{eq:a_k2rho2}, \ref{eq:a_-yn2}, \ref{eq:a_erfiyn}, \ref{eq:a_ln} giving
+\begin{multline}
+	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s}^3 (1+U_s)}
+	\exp(-k_\perp^2 \bar{\rho}_s^2) 
+	\sum_n I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[k_\parallel \sqrt{\pi} v_{th} 
+	+ \exp(-y_n^2) (\nu_s + i\omega)
+	\bigg( \pi i \erfi [y_n]  \\
+	- i \Big[ 
+	\ln \Big( - \frac{1}{v_{th,s} y_n} \Big)
+	- \ln \Big( \frac{1}{v_{th,s} y_n} \Big)
+	\Big]
+	\bigg)
+	\Bigg]
+\end{multline}
+Use Eq.~\ref{eq:a_ln} to get
+\begin{equation}
+	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s}^3 (1+U_s)}
+	\exp(-k_\perp^2 \bar{\rho}_s^2) 
+	\sum_n I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[k_\parallel \sqrt{\pi} v_{th} 
+	+ \exp(-y_n^2) (\nu_s + i\omega)
+	\bigg( \pi i \erfi [y_n]  
+	- i [- i \pi]
+	\bigg)
+	\Bigg]
+\end{equation}
+Distribute $1/k_\parallel \sqrt{\pi} v_{th,s}$ to get
+\begin{equation}
+	\chi_s = \frac{2\omega_{ps}^2}{k^s v_{th,s}^2 (1+U_s)}
+	\exp(-k_\perp^2 \bar{\rho}^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[
+	1 + \frac{\nu_s+i\omega}{k_\parallel \sqrt{\pi} v_{th,s}}
+	\exp(-y_n^2) 
+	\pi i 
+	\bigg( \erfi[y_n] + i  \bigg)
+	\Bigg]
+\end{equation}
+Combine $\pi$ and $i$ terms to get
+\begin{equation}
+	\chi_s = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2 (1+U_s)} 
+	\exp(-k_\perp^2 \bar{\rho}_s^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[
+	1 + \frac{i \nu_s - \omega}{k_\parallel v_{th}}
+	\exp(-y_n^2) 
+	\sqrt{\pi}
+	\bigg( 	\erfi[y_n] + i\bigg)
+	\Bigg]
+\end{equation}
+Distribute $\sqrt{\pi}\exp(-y_n^2)$ and take a negative out of $i\nu_s-\omega$ to get
+\begin{equation}
+	\chi_s = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2 (1+U_s)}
+		\exp(-k_\perp^2 \bar{\rho}_s^2)
+	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[
+	1 - \frac{\omega - i \nu_s}{k_\parallel v_{th}}
+	\exp(-y_n^2)
+	\bigg( 	\sqrt{\pi} \exp(-y_n^2)\erfi[y_n] + i\sqrt{\pi} \exp(-y_n^2)\bigg)
+	\Bigg]
+\end{equation}
+Using Eqs.~\ref{eq:a_Daw} and \ref{eq:a_alpha2}, we get
+\begin{equation}
+	\chi_s = \frac{\alpha^2}{1+U_s} \frac{T_e}{T_s}
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2)
+	I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[
+	1 - \frac{\omega -i\nu_s}{k_\parallel v_{th,s}}
+	\bigg(
+	2 \Da[y_n] + i \sqrt{\pi} \exp[-y_n^2]
+	\bigg)
+	\Bigg]
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
