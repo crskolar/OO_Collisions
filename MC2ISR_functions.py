@@ -9,6 +9,8 @@ from scipy.interpolate import interp1d
 import multiprocessing as mp
 from functools import partial
 import logging
+import tracemalloc
+import time
 
 # Calculate the interpolated velocity space based on location of poles
 # Inputs are:
@@ -285,6 +287,9 @@ def calcU_M_chi(vpar, vperp, f0, omega, kpar, kperp, nStart, nEnd, Oc, nu, mesh_
 # Takes an input of one n value
 # Returns one set of values for the summation terms corresponding to n and -n for U, chi, and M   
 def calcSumTerms(nBase, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par_dir):
+    proc = mp.Process()
+    # logging.info("Starting n = %d on %s" % (nBase, proc.name))
+
     sum_U = np.zeros_like(omega) + 1j*0.0
     sum_M = np.zeros_like(omega) + 1j*0.0
     sum_chi = np.zeros_like(omega) + 1j*0.0
@@ -297,6 +302,7 @@ def calcSumTerms(nBase, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par
 
         # Iterate through omega to get summation terms for each omega
         for k in range(0, len(omega)):
+            start = time.time()
             # Do the integrals for the three types of poles that show up in the calculations
             # 1: A single pole at z with order 1
             # 2: A single pole at z with order 2
@@ -309,18 +315,20 @@ def calcSumTerms(nBase, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par
             sum_U[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
             sum_M[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
             sum_chi[k] += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
-        
+
+            # print("k=%d of %d finished in %.2es" % (k, len(omega)-1, time.time()-start))
         # If n is 0, break the loop so we aren't double counting the zeroth order term
         if n == 0:
             break
-    logging.info("n = %d is done." % (nBase))
+    logging.info("n = %d is done on %s" % (nBase, proc.name))
+    # logging.info(tracemalloc.get_traced_memory())
     return sum_U, sum_M, sum_chi
 
 # A parallelized function that will call calcSumTerms and iterate from -nmax to nmax
 # Will output all of the individual summation terms
 def calcSumTerms_par(num_processors, nmax, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par_dir, fileDir, fileName):
     # Make an array for all n values we want to consider
-    nArray = np.arange(0, nmax+1)
+    nArray = np.arange(0, 100)
     
     # Check to make sure that the number of processors is <= to available number on computer
     if num_processors > mp.cpu_count():
@@ -330,10 +338,9 @@ def calcSumTerms_par(num_processors, nmax, vpar, vperp, f0, omega, kpar, kperp, 
     caclSumTerms_iterable = partial(calcSumTerms,vpar=vpar, vperp=vperp, f0=f0, omega=omega, kpar=kpar, kperp=kperp, Oc=Oc, nu=nu, mesh_n=mesh_n, par_dir=par_dir)
     
     # Set pool based on number of processors
-    pool = mp.Pool(num_processors)
-    
-    # Perform the parallel calculation
-    out = np.array(pool.map(caclSumTerms_iterable, nArray))
+    with mp.Pool(processes=num_processors) as pool:
+        # Perform the parallel calculation
+        out = np.array(pool.map(caclSumTerms_iterable, nArray))
     
     # Output to previous dumps everything into a single 3D array that is of the following shape:
     # nmax+1 x 3 x len(omega)
@@ -362,12 +369,12 @@ def calcFromSums(sum_U, sum_M, sum_chi, kpar, kperp, nu, wp):
     return U, M, chi
 
 # Initialize the logger
-def initialize_logger(fileName, fileDir):
+def initialize_logger(fileName, fileDir, num_processors):
     logging.root.handlers = []
     logging.basicConfig(level=logging.DEBUG, 
                         format='[%(asctime)s] %(message)s', 
                         datefmt='%m/%d/%Y %H:%M:%S',
                         handlers=[logging.FileHandler(fileDir+fileName+'.log',mode='w'),
                                   logging.StreamHandler()])
-    logging.info('Initializing log for %s' % fileName)
+    logging.info('Initializing log for %s using %d processors' % (fileName, num_processors))
     
