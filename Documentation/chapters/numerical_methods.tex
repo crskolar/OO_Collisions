@@ -33,3 +33,34 @@ Put a reference to the appendix for all of the testing that's been done with thi
 \begin{equation}
 	z = \frac{\omega - n\Omega_{cs}- i \nu_s}{k_\parallel}
 \end{equation}
+
+Take your discrete distribution and turn it into a set of piecewise linear functions in the parallel direction.
+Thus, each section of the distribution can be described as a linear equation of the form  % Rewrite all this better. Should change subscript index to j instead of i. i is used internally as imaginary number
+\begin{equation}
+	f_{0s,i}(v_\parallel, v_\perp)_i = a_i(v_\perp) v_\parallel + b_i(v_\perp),
+	\label{eq:fLinear}
+\end{equation}
+where $a$ and $b$ are polynomial coefficients that calculated as
+\begin{equation}
+	a_i(v_\perp) = \frac{f_{0s}(v_{\parallel,i+1},v_\perp) - f_{0s}(v_{\parallel,i},v_\perp)}{v_{\parallel,i+1} - v_{\parallel,i}}
+\end{equation}
+\begin{equation}
+	b_i(v_\perp) = f_{0s}(v_{\parallel,i},v_\perp)-a_i(v_\perp) v_{\parallel,i}
+\end{equation}
+and are functions of $v_\perp$.
+We can plug Eq.~\ref{eq:fLinear} into the above pole integrals % Ref them here at some point
+to get the exact indefinite integrals for each line segment:
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_{0s,i}(v_\parallel,v_\perp)}{v_\parallel - z} dv_\parallel = 
+	a_i(v_\perp) \big(v_\parallel-z\big) + \big[ a_i(v_\perp) z + b_i(v_\perp) ] \ln \big( v_\parallel - z \big)
+\end{equation}
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_{0s,i}(v_\parallel,v_\perp)}{(v_\parallel - z)^2} dv_\parallel = 
+	\frac{-a_i(v_\perp)z - b_i(v_\perp)}{v_\parallel - z} + a_i(v_\perp) \ln\big(v_\parallel-z\big)
+\end{equation}
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_{0s}(v_\parallel,v_\perp)}{(v_\parallel - z)(v_\parallel - z^*)} dv_\parallel = 
+	- \frac{i \Big( \big[ a_i(v_\perp)z + b_i(v_\perp)\big] \ln \big[ v_\parallel-z \big] - 
+		\big[ a_i(v_\perp)z^* + b_i(v_\perp)\big] \ln \big[ v_\parallel-z^* \big] 
+		 \Big)  }{2 \im(z)}
+\end{equation}

@@ -5,14 +5,15 @@ import time
 import matplotlib.pyplot as plt
 import os
 from functools import partial
-from MC2ISR_functions import *
+from ISRSpectraFunctions import *
 import scipy.special as sp
 import logging
 
 fileDir = '/mnt/c/Users/Chirag/Documents/O+O/data/maxwellian_all/'
-fileName = 'par4_perp2_theta10'
-num_proc = 16
+fileName = 'par2_perp1_theta10'
+num_proc = 10
 initialize_logger(fileName, fileDir, num_proc)
+angle = 10
 
 total_processors = mp.cpu_count()
 
@@ -57,7 +58,7 @@ nui = nuin + nuii + nuie
 
 # Set ISR parameters
 k_ISR = 2*math.pi*nu_ISR/c
-theta = np.deg2rad(10)
+theta = np.deg2rad(angle)
 kpar = k_ISR*np.cos(theta)
 kperp = k_ISR*np.sin(theta)
 
@@ -76,25 +77,25 @@ lambdaD = (eps0*kB*Te/(ne*e**2))**.5
 alpha = 1/k_ISR/lambdaD
 
 # Set parameters for calculation of modified ion distribution and ion suseptability
+nStart = 0
 nmax = 2000
-mesh_n = 500
 
 # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
 cs = (5/3*kB*(Ti+Te)/mi)**.5
 omega_bounds = round(cs*k_ISR*3,-3)
-omega = np.linspace(-omega_bounds,omega_bounds,31)
+omega = np.linspace(-omega_bounds,omega_bounds,101)
 
-dvpar_order = -4.0
+dvpar_order = -2.0
 dvpar = 10**dvpar_order*vthipar
 vpar = np.arange(-4*vthipar,4*vthipar+dvpar,dvpar)
-dvperp = 10**-2*vthiperp
+dvperp = 10**-1*vthiperp
 vperp = np.arange(0,4*vthiperp+dvperp,dvperp)
 
 
 # tracemalloc.start()
 [VVperp, VVpar] = np.meshgrid(vperp, vpar)
 
-Dstar = 0.0# 1.8
+Dstar = 0.0#1.8
 
 # Build distribution function
 def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
@@ -104,14 +105,13 @@ def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
 
 
 f0i = toroidal_norm(VVperp,VVpar, vthiperp, vthipar, Dstar)
+[a, b] = getLinearInterpCoeff(VVpar, f0i)
+
 
 if __name__ == '__main__':
     start_time = time.time()
-    [sum_U, sum_M, sum_chi] = calcSumTerms_par(num_proc, nmax, vpar, vperp, f0i, omega, kpar, kperp, Oci, nui, mesh_n, 0, fileDir, fileName)
-
+    # [sum_U, sum_M, sum_chi] = calcSumTerms_par(num_proc, nStart, nmax, vpar, vperp, f0i, omega, kpar, kperp, Oci, nui, mesh_n, 0, fileDir, fileName)
+    [sum_U, sum_M, sum_chi] = calcSumTerms_par(num_proc, nStart, nmax, vpar, vperp, a, b, omega, kpar, kperp, Oci, nui, mi, fileDir, fileName)
     end_time = time.time() - start_time
     logging.info("Finished in time=%.2e s" % (end_time))
-
-# logging.info(tracemalloc.get_traced_memory())
-logging.shutdown()                                                                  
-# tracemalloc.stop()
+logging.shutdown()  

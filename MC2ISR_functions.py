@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 from mpl_toolkits import mplot3d
+import scipy
 import scipy.special as sp
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, CubicSpline
 import multiprocessing as mp
 from functools import partial
 import logging
@@ -77,7 +78,8 @@ def poleIntegrate(poles, orders, v_input, Fv, mesh_n, int_dir):
     v_int = getVInterp(poles, v_input, mesh_n)
     
     # Make interpolation function and interpolate
-    interp_fun = interp1d(v_input, Fv, axis=int_dir)
+    # interp_fun = interp1d(v_input, Fv, axis=int_dir)
+    interp_fun = CubicSpline(v_input, Fv, axis=int_dir)
     
     Fv_int = interp_fun(v_int)
     
@@ -85,6 +87,43 @@ def poleIntegrate(poles, orders, v_input, Fv, mesh_n, int_dir):
     integrand = getIntegrand(poles, orders, v_int, Fv_int)
     
     return np.trapz(integrand, v_int,axis=int_dir)  # Do the trapezoidal integration
+
+def getLinearInterpCoeff(x, y):
+    # Set everything up based on if we have 1d or 2d data
+    if len(np.shape(y)) == 2:
+        [numPar, numPerp] = np.shape(y)
+        numElements = numPar - 1
+        a = np.zeros((numElements, numPerp))
+        b = np.zeros((numElements, numPerp))
+    elif len(np.shape(y)) == 1:
+        numElements = len(y) - 1
+        a = np.zeros(numElements)
+        b = np.zeros(numElements)
+
+    # Iterate through numElements
+    for i in range(numElements):
+        a[i] = (y[i+1]-y[i])/(x[i+1]-x[i])
+        b[i] = y[i]-a[i]*x[i]
+    return a,b
+
+# Make functions for the exact solution to linear representation
+def p1IndefiniteIntegral(a, b, z, x):
+    return a*(x-z)+(b+a*z)*np.log(x-z)
+
+def p2IndefiniteIntegral(a, b, z, x):
+    return (-b-a*z)/(x-z)+a*np.log(x-z)
+
+def pstarIndefiniteIntegral(a, b, z, x):
+    return ((b+a*np.conjugate(z))*np.log(x-np.conjugate(z)) - (b+a*z)*np.log(x-z))*1j/np.imag(z)/2.
+
+# Conduct parallel pole integrations
+def interpolatedIntegral(a, b, z, x, integralFunction):
+    integratedValue = 0.0 + 1j*0.0# might need to rethink this
+    # Iterate through each element
+    for i in range(len(a)):
+        integratedValue += integralFunction(a[i], b[i], z, x[i+1]) - integralFunction(a[i], b[i], z, x[i])
+    return integratedValue
+    
 
 # This function does the analytic Plemelj calculation (not including the principal value term)
 def plemelj(poles, orders, v_input, Fv):
@@ -143,6 +182,50 @@ def calcChis_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, alpha, U
         
     return alpha**2*(Te/Ts)*chi/(1+U)
 
+# This function calculates the exact collisional term, U, for a bi-Maxwellian distribution
+def calcU_biMax(omega, kpar, kperp, vthpar, nmax, rho_avg, Oc, nu):
+    # Initialize U
+    U = np.zeros_like(omega) + 1j*0.0
+    
+    # Iterate from -nmax to nmax
+    for n in range(-nmax, nmax+1):
+        # Calculate yn
+        yn = (omega - n*Oc-1j*nu)/kpar/vthpar
+        
+        # Do summation term in U
+        U += sp.ive(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn**2))
+    return U*1j*nu/kpar/vthpar
+
+# This function calculates the exact modified distribution function, M, for a bi-Maxwellian distribution
+def calcM_biMax(omega, kpar, kperp, vthpar, nmax, rho_avg, Oc, nu, U):
+    # Initialize M
+    M = np.zeros_like(omega) + 1j*0.0
+    
+    # Iterate from -nmax to nmax
+    for n in range(-nmax, nmax+1):
+        # Calculate yn and ynstar
+        yn = (omega - n*Oc-1j*nu)/kpar/vthpar
+        ynstar = (omega - n*Oc+1j*nu)/kpar/vthpar
+        
+        # Do summation term for M
+        M += sp.ive(n, kperp**2*rho_avg**2)*np.exp(-yn**2)
+        
+        #sp.ive(n,kperp**2*rho_avg**2)*np.exp(-ynstar**2)*(np.exp(4*1j*nu*(omega-n*Oc)/kpar**2/vthpar**2)*sp.erfc(1j*yn)+sp.erf(1j*ynstar)+1)
+    return np.real(M*math.pi**.5/kpar/vthpar/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2)    #  np.real(M*math.pi**0.5/2/kpar/vthpar/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2)
+
+def calcchi_biMax(omega, kpar, kperp, vthpar, vthperp, nmax, rho_avg, Oc, nu, U, alpha, Te, Tpar):
+    # Initialize chi
+    chi = np.zeros_like(omega) + 1j*0.0
+    
+    # Iterate from -nmax to nmax
+    for n in range(-nmax, nmax+1):
+        # Calculate yn
+        yn = (omega - n*Oc-1j*nu)/kpar/vthpar
+        
+        # Do summation term
+        chi += sp.ive(n, kperp**2*rho_avg**2)*(1-(n*Oc*vthpar/kpar/vthperp**2+yn)*(2*sp.dawsn(yn)+1j*math.pi**.5*np.exp(-yn**2)))
+        
+    return chi*Te*alpha**2/Tpar/(1+U)
 
 # This function calculates the collisional term, U, using the pole refined integration method
 # The inputs are:
@@ -326,9 +409,9 @@ def calcSumTerms(nBase, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par
 
 # A parallelized function that will call calcSumTerms and iterate from -nmax to nmax
 # Will output all of the individual summation terms
-def calcSumTerms_par(num_processors, nmax, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par_dir, fileDir, fileName):
+def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par_dir, fileDir, fileName):
     # Make an array for all n values we want to consider
-    nArray = np.arange(0, 100)
+    nArray = np.arange(nStart, nmax+1)
     
     # Check to make sure that the number of processors is <= to available number on computer
     if num_processors > mp.cpu_count():
@@ -357,15 +440,99 @@ def calcSumTerms_par(num_processors, nmax, vpar, vperp, f0, omega, kpar, kperp, 
     
     return sum_U, sum_M, sum_chi
     
+# Calculate the individual summation terms. 
+# Takes an input of one n value
+# Returns one set of values for the summation terms corresponding to n and -n for U, chi, and M   
+# This is using the linear interpolation interpretation
+def calcSumTerms_interp(nBase, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu):
+    start_time = time.time()
+    proc = mp.Process()
+    # logging.info("Starting n = %d on %s" % (nBase, proc.name))
+
+    sum_U = np.zeros_like(omega) + 1j*0.0
+    sum_M = np.zeros_like(omega) + 1j*0.0
+    sum_chi = np.zeros_like(omega) + 1j*0.0
+    # Iterate through the two signs. Summation term needs to be symmetric
+    for sgn in [-1.0, 1.0]:
+        n = sgn*nBase
+
+        # Calculate the base pole
+        z = (omega - n*Oc - 1j*nu)/kpar
+
+        # Iterate through omega to get summation terms for each omega
+        for k in range(0, len(omega)):
+            # Do the integrals for the three types of poles that show up in the calculations
+            # 1: A single pole at z with order 1
+            # 2: A single pole at z with order 2
+            # 3: A double pole at z and z* (each first order)
+            p1 = interpolatedIntegral(a, b, z[k], vpar, p1IndefiniteIntegral)
+            pstar = interpolatedIntegral(a, b, z[k], vpar, pstarIndefiniteIntegral)
+            p2 = interpolatedIntegral(a, b, z[k], vpar, p2IndefiniteIntegral)
+
+            # Perform summation for U, M, and Chi
+            sum_U[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*p1,vperp)
+            sum_M[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*pstar,vperp)
+            sum_chi[k] += np.trapz(vperp*p2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(p1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
+
+            # print("k=%d of %d finished in %.2es" % (k, len(omega)-1, time.time()-start))
+        # If n is 0, break the loop so we aren't double counting the zeroth order term
+        if n == 0:
+            break
+    end_time = time.time() - start_time
+    logging.info("n = %d is done on %s in %.2es" % (nBase, proc.name, end_time))
+    # logging.info(tracemalloc.get_traced_memory())
+    return sum_U, sum_M, sum_chi
+
+
+# A parallelized function that will call calcSumTerms and iterate from -nmax to nmax
+# Will output all of the individual summation terms
+def calcSumTerms_interp_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu, fileDir, fileName):
+    # Make an array for all n values we want to consider
+    nArray = np.arange(nStart, nmax+1)
+    
+    # Check to make sure that the number of processors is <= to available number on computer
+    if num_processors > mp.cpu_count():
+        num_processors = mp.cpu_count()  # If too many called, default to max available
+    
+    # Make an iterable function that only changes n in calcSumTerms and leaves everything else a constant
+    caclSumTerms_iterable = partial(calcSumTerms_interp,vpar=vpar, vperp=vperp, a=a, b=b, omega=omega, kpar=kpar, kperp=kperp, Oc=Oc, nu=nu)
+    
+    # Set pool based on number of processors
+    with mp.Pool(processes=num_processors) as pool:
+        # Perform the parallel calculation
+        out = np.array(pool.map(caclSumTerms_iterable, nArray))
+    
+    # Output to previous dumps everything into a single 3D array that is of the following shape:
+    # nmax+1 x 3 x len(omega)
+    # Return the values in appropriate 2D summation arrays that will be of shape:
+    # nmax+1 x len(omega)
+    sum_U =out[:,0,:]
+    sum_M = out[:,1,:]
+    sum_chi = out[:,2,:]
+    
+    # Save the data so that we have it for the future
+    np.savetxt(fileDir + fileName + '_sum_U.txt',sum_U,fmt='%.18e')
+    np.savetxt(fileDir + fileName + '_sum_M.txt',sum_M,fmt='%.18e')
+    np.savetxt(fileDir + fileName + '_sum_chi.txt',sum_chi,fmt='%.18e')
+    
+    return sum_U, sum_M, sum_chi
+
 # Calculate U, M, and chi from their summation terms
 # Input summations are assumed to be of the shape nmax+1 x len(omega) as per the output of the previous function
 # Output 
 def calcFromSums(sum_U, sum_M, sum_chi, kpar, kperp, nu, wp):
-    # Perform summations and calculations
-    U = -2*math.pi*1j*nu/kpar*np.sum(sum_U,axis=0)
-    M = (np.sum(sum_M,axis=0)*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
-    chi = np.sum(sum_chi,axis=0)*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
     
+    if len(np.shape(sum_U)) == 2:
+        # Perform summations and calculations
+        U = -2*math.pi*1j*nu/kpar*np.sum(sum_U,axis=0)
+        M = (np.sum(sum_M,axis=0)*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+        chi = np.sum(sum_chi,axis=0)*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+    
+    elif len(np.shape(sum_U)) == 1:
+        # Perform summations and calculations
+        U = -2*math.pi*1j*nu/kpar*sum_U
+        M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+        chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
     return U, M, chi
 
 # Initialize the logger
@@ -377,4 +544,44 @@ def initialize_logger(fileName, fileDir, num_processors):
                         handlers=[logging.FileHandler(fileDir+fileName+'.log',mode='w'),
                                   logging.StreamHandler()])
     logging.info('Initializing log for %s using %d processors' % (fileName, num_processors))
-    
+
+
+# Calculate the individual summation terms using simple trapz
+# Takes an input of one n value
+# Returns one set of values for the summation terms corresponding to n and -n for U, chi, and M   
+def calcSumTerms_trapz(nBase, vpar, vperp, f0, omega, kpar, kperp, Oc, nu, mesh_n, par_dir):
+    proc = mp.Process()
+
+    sum_U = np.zeros_like(omega) + 1j*0.0
+    sum_M = np.zeros_like(omega) + 1j*0.0
+    sum_chi = np.zeros_like(omega) + 1j*0.0
+    # Iterate through the two signs. Summation term needs to be symmetric
+    for sgn in [-1.0, 1.0]:
+        n = sgn*nBase
+
+        # Calculate the base pole
+        z = (omega - n*Oc - 1j*nu)/kpar
+
+        # Iterate through omega to get summation terms for each omega
+        for k in range(0, len(omega)):
+            # start = time.time()
+            # Do the integrals for the three types of poles that show up in the calculations
+            # 1: A single pole at z with order 1
+            # 2: A single pole at z with order 2
+            # 3: A double pole at z and z* (each first order)
+            singlePole_Order1 = np.trapz(np.transpose(np.transpose(f0)/(vpar-z[k])), vpar, axis=par_dir)
+            singlePole_Order2 = np.trapz(np.transpose(np.transpose(f0)/(vpar-z[k])**2), vpar, axis=par_dir)
+            doublePole = np.trapz(np.transpose(np.transpose(f0)/(vpar-z[k])/(vpar-np.conjugate(z[k]))), vpar, axis=par_dir)
+
+            # Perform summation for U, M, and Chi
+            sum_U[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*singlePole_Order1,vperp)
+            sum_M[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*doublePole,vperp)
+            sum_chi[k] += np.trapz(vperp*singlePole_Order2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(singlePole_Order1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
+
+            # print("k=%d of %d finished in %.2es" % (k, len(omega)-1, time.time()-start))
+        # If n is 0, break the loop so we aren't double counting the zeroth order term
+        if n == 0:
+            break
+    logging.info("n = %d is done on %s" % (nBase, proc.name))
+    # logging.info(tracemalloc.get_traced_memory())
+    return sum_U, sum_M, sum_chi

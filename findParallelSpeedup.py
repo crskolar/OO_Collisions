@@ -13,11 +13,11 @@ import logging
 # Do this using the same Maxwellian I've been using
 # Do to nmax = 2*numProcessors
 
-dvpar_order = -5.0
+dvpar_order = -2.0
 dvperp_order = -1.0
 angle = 50.0
 
-fileDir = '/mnt/f/Cherin/Documents/interim_data/O+O/speed/'
+fileDir = '/mnt/c/Users/Chirag/Documents/O+O/data/interp_speed/'
 
 # Set the background plasma values
 import scipy.constants as const
@@ -93,21 +93,24 @@ def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
 
 
 f0i = toroidal_norm(VVperp,VVpar, vthiperp, vthipar, Dstar)
+[a, b] = getLinearInterpCoeff(VVpar, f0i)
 
 mesh_n = 500
 
 
 # Iterate through the number of processors
-maxNumProc = 8
+numOp_per_proc = 10
+maxNumProc = 10
 for i in range(0,maxNumProc):
     if __name__ == '__main__':
         print("Running on", i+1, "processors.")
 
-        # Set nmax so that we have at 2 operations per processor
-        nmax = 2*i+1
+        # Set nmax so that we have at numOp_per_proc operations per processor
+        nmax = numOp_per_proc*(i+1)-1
         fileName = 'par%d_perp%d_theta%d_np%d' % (int(np.abs(dvpar_order)),int(np.abs(dvperp_order)), int(angle), i+1)
         initialize_logger(fileName, fileDir, i+1)
-        [sum_U, sum_M, sum_chi] = calcSumTerms_par(i+1, 0, nmax, vpar, vperp, f0i, omega, kpar, kperp, Oci, nui, mesh_n, 0, fileDir, fileName)
+        # [sum_U, sum_M, sum_chi] = calcSumTerms_par(i+1, 0, nmax, vpar, vperp, f0i, omega, kpar, kperp, Oci, nui, mesh_n, 0, fileDir, fileName)
+        [sum_U, sum_M, sum_chi] = calcSumTerms_interp_par(i+1, 0, nmax, vpar, vperp, a, b, omega, kpar, kperp, Oci, nui, fileDir, fileName)
 
         logging.info("Finished!")
         logging.shutdown()

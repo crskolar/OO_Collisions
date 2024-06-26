@@ -400,7 +400,7 @@ where
 \end{equation}
 We can solve these integrals in cylindrical coordinates using 
 \begin{equation}
-	\int f_{0s}(\mathbf{v}) d\mathbf{g} = \int_0^{2\pi} \int_0^\infty \int_{-\infty}^\infty v_\perp f_{0s}(\mathbf{v}) 
+	\int f_{0s}(\mathbf{v}) d\mathbf{v} = \int_0^{2\pi} \int_0^\infty \int_{-\infty}^\infty v_\perp f_{0s}(\mathbf{v}) 
 	dv_\parallel dv_\perp d\phi.
 \end{equation}
 
@@ -408,21 +408,26 @@ We can therefore, find the spectra using these equations
 for an arbitrary ion distribution function.
 However, depending on the shape of the distribution function, there may or may not be an
 analytical solution for the scattering spectra.
-For the case a Maxwellian distribution, 
+For the case of a bi-Maxwellian distribution, 
 \begin{equation}
-	f_{0s} = v_{th,s}^{-3} \pi^{-3/2} \exp\bigg[ - \frac{(v_\perp^2 + v_\parallel^2)}{v_{th,s}^2} \bigg],
+	f_{0s} = v_{th,s,\perp}^{-2} v_{th,s,\parallel} \pi^{-3/2} 
+	\exp\bigg[ - \frac{v_\perp^2}{v_{th,s,\perp}^2} - \frac{v_\parallel^2}{v_{th,s,\parallel}^2} \bigg],
 \end{equation}
 we can find an analytical solution.
-These integrals are messy to solve so we will use Mathematica (see the notebook \verb|calcS_Maxwellian.nb| for the analytical solutions)
+These integrals are messy to solve so we will use Mathematica (see the notebook \verb|calcS_Maxwellian.nb| for the analytical solutions)  % Update this mathematica notebook
 
-\subsection{Useful Relationships}
+\subsection{Useful Relationships}  % Should have some sort of proof of these somewhere maybe
 The following relationships will be useful in simplifying the Mathematica output
 \begin{equation}
-	y_n = \frac{\omega - n \Omega_{cs}- i \nu_s}{k_\parallel v_{th,s}}
+	y_n = \frac{\omega - n \Omega_{cs}- i \nu_s}{k_\parallel v_{th,s,\parallel}}
 	\label{eq:a_yn}
 \end{equation}
 \begin{equation}
-	\bar{\rho}_s = \frac{v_{th,s}}{\sqrt{2} \Omega_{cs}}
+	y_n^* = \frac{\omega - n \Omega_{cs}+ i \nu_s}{k_\parallel v_{th,s,\parallel}}
+	\label{eq:a_ynstar}
+\end{equation}
+\begin{equation}
+	\bar{\rho}_s = \frac{v_{th,s,\perp}}{\sqrt{2} \Omega_{cs}}
 	\label{eq:a_rho}
 \end{equation}
 \begin{equation}
@@ -430,19 +435,19 @@ The following relationships will be useful in simplifying the Mathematica output
 	\label{eq:a_Daw}
 \end{equation}
 \begin{equation}
-	\ln\bigg( -\frac{1}{v_{th,s}y_n} \bigg) - \ln\bigg( \frac{1}{v_{th,s}y_n} \bigg) = -i \pi
+	\ln\bigg( -\frac{1}{v_{th,s,\parallel}y_n} \bigg) - \ln\bigg( \frac{1}{v_{th,s,\parallel}y_n} \bigg) = -i \pi
 	\label{eq:a_ln}
 \end{equation}
 \begin{equation}
-	k_\perp^2 \bar{rho}_s^2 = \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}
+	k_\perp^2 \bar{\rho}_s^2 = \frac{k_\perp^2 v_{th,s,\perp}^2}{2\Omega_{cs}^2}
 	\label{eq:a_k2rho2}
 \end{equation}
 \begin{equation}
-	-y_n = \frac{i\nu + n\Omega{cs}-\omega}{k_\parallel v_{th,s}}
+	-y_n = \frac{i\nu + n\Omega{cs}-\omega}{k_\parallel v_{th,s,\parallel}}
 	\label{eq:a_-yn}
 \end{equation}
 \begin{equation}
-	-y_n^2 = \frac{\big(\nu-in\Omega_{cs}+i\omega\big)^2}{k_\parallel^2 v_{th,s}^2}
+	-y_n^2 = \frac{\big(\nu-in\Omega_{cs}+i\omega\big)^2}{k_\parallel^2 v_{th,s,\parallel}^2}
 	\label{eq:a_-yn2}
 \end{equation}
 \begin{equation}
@@ -454,7 +459,17 @@ The following relationships will be useful in simplifying the Mathematica output
 	\label{eq:a_vthyn}
 \end{equation}
 \begin{equation}
-	i \erfi(y_n) = \erf \bigg( \frac{\nu_s - i n\Omega_{cs} + i \omega}{k_\parallel v_{th,s}}  \bigg)
+	\frac{1}{v_{th,s}y_n^*} = \frac{k_\parallel}{i\nu_s-n\Omega_{cs}+\omega}
+	\label{eq:a_vthynstar}
+\end{equation}
+\begin{equation}
+	\frac{\nu_s^2-(n\Omega_{cs}+\omega)^2-2 i \nu_s (n\Omega_{cs}+ \omega)}{k_\parallel^2 v_{th,s,\parallel}^2} = 
+	-(y_n^*)^2 - \frac{4 i \nu_s n \Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2}
+	= - y_n^2 - \frac{4 i \nu_s \omega}{k_\parallel^2 v_{th,s,\parallel}^2}  
+	\label{eq:a_ynstar_plus}
+\end{equation}
+\begin{equation}
+	i \erfi(y_n) = \erf \bigg( \frac{\nu_s - i n\Omega_{cs} + i \omega}{k_\parallel v_{th,s,\parallel}}  \bigg) = \erf(y_n)
 	\label{eq:a_erfiyn}
 \end{equation}
 \begin{equation}
@@ -462,53 +477,67 @@ The following relationships will be useful in simplifying the Mathematica output
 	\label{eq:a_alpha}
 \end{equation}
 \begin{equation}
-	\alpha^2 \frac{T_e}{T_s} = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2}
+	\alpha^2 \frac{T_e}{T_s} = \frac{2 \omega_{ps}^2}{k^2 v_{th,s,\parallel}^2}
 	\label{eq:a_alpha2}
+\end{equation}
+\begin{equation}
+	-i\pi = \ln \Big[ \frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} \Big]
+	- \ln \Big[ \frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega} \Big] 
+	\label{eq:a_lnipi}
+\end{equation}
+\begin{equation}
+	i\pi = \ln \Big( -\frac{1}{v_{th,s,\parallel}y_n^*}\Big) - \ln \Big(\frac{1}{v_{th,s,\parallel}y_n^*}\Big)
+	\label{eq:a_lnipistar}
+\end{equation}
+\begin{equation}
+	\erfc(x) = 1 - \erf(x)
+	\label{eq:a_erfc}
 \end{equation}
 
 \subsection{Collisional Term, $U_s$}
 The output from Mathematica for the collisional term is
 \begin{multline}
-	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi}v_{th,s}}
-	\exp \Bigg[ \frac{\big( \nu_s - i n\Omega_{cs} + i \omega \big)^2}{k_\parallel^2 v_{th,s}^2} \Bigg]
-	\sum_n I_n \bigg( \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}\bigg)
-	\Bigg[\pi \erfi \bigg( \frac{i\nu_s + n\Omega_{cs} - \omega}{k_\parallel v_{th,s}}  \bigg)   \\
-	+ \ln \bigg( \frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} \bigg)
-	- \ln \bigg( \frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega} \bigg)
+	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi}v_{th,s,\parallel}} \sum_n
+	\exp \Bigg[ \underbrace{\frac{\big( \nu_s - i n\Omega_{cs} + i \omega \big)^2}{k_\parallel^2 v_{th,s,\parallel}^2}}_{-y_n^2}
+	- \underbrace{\frac{k_\perp^2 v_{th,s,\perp}^2}{2 \Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2} \Bigg]
+	I_n \bigg( \underbrace{\frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2}\bigg)
+	\Bigg[\pi \erfi \bigg( \underbrace{\frac{i\nu_s + n\Omega_{cs} - \omega}{k_\parallel v_{th,s}}}_{-y_n}  \bigg)   \\
+	+ \ln \bigg( \underbrace{\frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} }_{-\frac{1}{v_{th,s,\parallel}y_n}}\bigg)
+	- \ln \bigg( \underbrace{\frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega}}_{-\frac{1}{v_{th,s,\parallel}y_n}} \bigg) 
 	\Bigg]
 \end{multline}
 Using the relationships from Eqs.~\ref{eq:a_k2rho2}, \ref{eq:a_-yn}, \ref{eq:a_-yn2}, and \ref{eq:a_vthyn}, we get
 \begin{equation}
-	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi} v_{th,s}}
+	U_s = -\frac{i \nu_s}{k_\parallel \sqrt{\pi} v_{th,s,\parallel}} \sum_n
 	\exp \Big(-y_n^2 - k_\perp^2 \bar{\rho}_s^2 \Big)
-	\sum_n I_n \Big( k_\perp^2 \bar{\rho}_s^2 \Big)	
-	\Bigg[ \pi \erfi\Big(-y_n\Big)
-	+ \ln\bigg( -\frac{1}{v_{th} y_n} \bigg)
-	-\ln\bigg( \frac{1}{v_{th} y_n} \bigg)
+	 I_n \Big( k_\perp^2 \bar{\rho}_s^2 \Big)	
+	\Bigg[ \pi \underbrace{\erfi\Big(-y_n\Big)}_{-\erfi(y_n)}
+	+\underbrace{ \ln\bigg( -\frac{1}{v_{th,s,\parallel} y_n} \bigg)
+	-\ln\bigg( \frac{1}{v_{th,s,\parallel} y_n} \bigg)}_{-i\pi}
 	\Bigg]
 \end{equation}
 Distribute inside the $-1/\sqrt{\pi}$ and use the relationships
 from Eqs.~\ref{eq:a_ln} and \ref{eq:a_erfi_odd} to get
 \begin{equation}
-	U_s = \frac{i\nu_s}{k_\parallel v_{th,s}}
+	U_s = \frac{i\nu_s}{k_\parallel v_{th,s,\parallel}} \sum_n
 	\exp(-y_n^2)
 	\exp(-k_\perp^2 \bar{\rho}_s^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2) 
+	 I_n (k_\perp^2 \bar{\rho}_s^2) 
 	\Bigg[ - \pi \bigg(-\erfi\Big[y_n\Big]\bigg) - 
 	\bigg(- \frac{i\pi}{\sqrt{\pi}} \bigg)
 \end{equation}
 Distribute the $\exp(-y_n^2)$.
 \begin{equation}
-	U_s = \frac{i \nu_s}{k_\parallel v_{th,s}}
+	U_s = \frac{i \nu_s}{k_\parallel v_{th,s,\parallel}} \sum_n
 	\exp(-k_\perp^2 \bar{\rho}_s^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
-	\Bigg[ \sqrt{\pi} \exp(-y_n^2) \erfi(y_n) + i \sqrt{\pi} \exp(-y_n^2) \Bigg]
+	 I_n (k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[ \underbrace{\sqrt{\pi} \exp(-y_n^2) \erfi(y_n)}_{2\Da(y_n)} + i \sqrt{\pi} \exp(-y_n^2) \Bigg]
 \end{equation}
 Use relationship in Eq.~\ref{eq:a_Daw} to get
 \begin{equation}
-	U_s = \frac{i \nu_s}{k_\parallel v_{th,s}}
+	U_s = \frac{i \nu_s}{k_\parallel v_{th,s,\parallel}} \sum_n
 	\exp(-k_\perp^2 \bar{\rho}_s^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
+	 I_n (k_\perp^2 \bar{\rho}_s^2)
 	\bigg[ 2\Da(y_n) + i \sqrt{\pi} \exp(-y_n^2)  \bigg],
 \end{equation}
 which is the final nice looking result.
@@ -517,100 +546,171 @@ which is the final nice looking result.
 \subsection{Susceptibility, $\chi$}
 The result from Mathematica is
 \begin{multline}
-	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel^2 k^2 \sqrt{\pi} v_{th,s}^3}
-		\sum_n \exp \bigg( - \frac{k_\perp^2 v_{th,s}^2}{2 \Omega_{cs}^2} \bigg)
-		I_n \bigg( \frac{k_\perp^2 v_{th,s}^2}{2\Omega_{cs}^2}  \bigg)
-		\Bigg[ k_\parallel \sqrt{\pi} v_{th,s} 
-		+ \exp\bigg( \frac{\big[ \nu_s - i n\Omega_{cs} + i\omega  \big]^2}{k_\parallel v_{th,s}^2} \bigg) (\nu_s+i\omega) \\
-		\bigg( \pi \erf \Big[ \frac{\nu_s - i n\Omega_{cs} + i\omega}{k_\parallel v_{th,s}} \Big]
-		- i \Big[
-		\ln \Big( \frac{k_\parallel}{i\nu_s+n\Omega_{cs}-\omega }\Big)
-		- \ln \Big( \frac{k_\parallel}{-i\nu_s-n\Omega_{cs}+\omega }\Big)
-		\Big] \bigg) \Bigg] 
-		\frac{1}{1+U_s}
+	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s,\parallel}^3 v_{th,s,\perp}^2(1+U_s)}
+	\sum_n \exp \Bigg[ \underbrace{\frac{(\nu_s - in\Omega_{cs} + i\omega)^2}{k_\parallel^2 v_{th,s,\parallel}^2}}_{-y_n^2}
+	- \underbrace{\frac{k_\perp^2 v_{th,s,\perp}^2}{2 \Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2}  \Bigg]
+	I_n \bigg( \underbrace{\frac{k_\perp^2 v_{th,s,\perp}^2}{2 \Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2}  \bigg)* \\
+	\Bigg[ k_\parallel \sqrt{\pi} v_{th,s,\parallel} v_{th,s,\perp}^2 
+	\exp \bigg( - \underbrace{\frac{[\nu_s - i n\Omega_{cs}+ i \omega]^2}{k_\parallel^2 v_{th,s,\parallel}^2}}_{-y_n^2}   \bigg) \\
+	+ \bigg( n\Omega_{cs} v_{th,s,\parallel}^2 + \Big[ -i\nu_s - n\Omega_{cs}+ \omega \Big] v_{th,s,\perp}^2  \bigg)
+	\bigg( i \pi \underbrace{\erf \Big[ \frac{\nu_s - in\Omega_{cs}+i\omega}{k_\parallel v_{th,s,\parallel}}  \Big]}_{i \erfi(y_n)}\\
+	+ \underbrace{\ln \Big[ \frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} \Big]
+	- \ln \Big[ \frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega} \Big]}_{-i\pi}
+	\bigg)
+	\Bigg].
 \end{multline}
-Use Eqs.~\ref{eq:a_k2rho2}, \ref{eq:a_-yn2}, \ref{eq:a_erfiyn}, \ref{eq:a_ln} giving
+Use Eqs.~\ref{eq:a_k2rho2}, \ref{eq:a_-yn2}, \ref{eq:a_erfiyn}, and \ref{eq:a_lnipi} and separating the first exponential term, we get
 \begin{multline}
-	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s}^3 (1+U_s)}
-	\exp(-k_\perp^2 \bar{\rho}_s^2) 
-	\sum_n I_n(k_\perp^2 \bar{\rho}^2)
-	\Bigg[k_\parallel \sqrt{\pi} v_{th} 
-	+ \exp(-y_n^2) (\nu_s + i\omega)
-	\bigg( \pi i \erfi [y_n]  \\
-	- i \Big[ 
-	\ln \Big( - \frac{1}{v_{th,s} y_n} \Big)
-	- \ln \Big( \frac{1}{v_{th,s} y_n} \Big)
-	\Big]
+	\chi_s = \frac{2\omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s,\parallel}^3 v_{th,s,\perp}^2(1+U_s)} 
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) \exp(-y_n)^2 I_n(k_\perp^2 \bar{\rho}_s^2)
+	\Bigg[ k_\parallel \sqrt{\pi} v_{th,s,\parallel} v_{th,s,\perp}^2 \exp\big( -[y_n^2] \big)  \\+
+	\bigg( n\Omega_{cs} v_{th,s,\parallel}^2 + \Big[ -i\nu_s - n\Omega_{cs}+ \omega \Big] v_{th,s,\perp}^2 \bigg)
+	\bigg( i \pi i \erfi[y_n] - i\pi \bigg)
+	\Bigg].
+\end{multline}
+Distribute the $1/k_\parallel \sqrt{\pi}$ to get
+\begin{multline}
+	\chi_s = \frac{2\omega_{ps}^2}{k^2 v_{th,s,\parallel}^3 v_{th,s,\perp}^2 (1+U_s)} \sum_n
+	\exp(-k_\perp^2 \bar{\rho}^2) I_n(k_\perp^2 \bar{\rho}^2) \exp(-y_n^2)
+	\Bigg[ \frac{k_\parallel \sqrt{\pi} v_{th,s,\parallel} v_{th,s,\perp}^2}{k_\parallel \sqrt{\pi}} \exp(y_n^2) \\
+	+ \frac{1}{k_\parallel \sqrt{\pi}} 
+	\bigg( n\Omega_{cs} v_{th,s,\parallel}^2 + \Big[ -i\nu_s - n\Omega_{cs}+ \omega \Big] v_{th,s,\perp}^2 \bigg)
+	\bigg( - \pi \erfi[y_n] - i\pi \bigg)
+	\Bigg].
+\end{multline}
+Distribute the $k_\parallel$ into the first set of parentheses, the $\sqrt{\pi}$ into the second set, and
+the $\exp(-y_n^2)$ into the brackets and factor out a negative one from the parentheses with the $\erfi$ to get
+\begin{multline}
+	\chi_s = \frac{2\omega_{ps}^2}{k^2 v_{th,s,\parallel}^3v_{th,s,\perp}^2(1+U_s)} \sum_n
+	\exp(-k_\perp^2 \bar{\rho}^2) I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[ v_{th,s,\parallel}v_{th,s,\perp}^2 \exp(y_n^2) \exp(-y_n^2) \\
+	- \bigg( \frac{n \Omega_{cs} v_{th,s,\parallel}^2}{k_\parallel} + \Big[ \frac{\omega-n\Omega_{cs}-i\nu_s}{k_\parallel} \Big]v_{th,s,\perp}^2  \bigg)
+	\exp(-y_n^2)
+	\bigg( \sqrt{\pi} \erfi[y_n] + i \sqrt{\pi}  \bigg)
+	\Bigg]
+\end{multline}
+Distribute $1/v_{th,s,\parallel}v_{th,s,\perp}^2$ from the outside into the brackets and the $\exp(-y_n^2)$
+into the parentheses with the $\erfi$ term to get
+\begin{multline}
+	\chi_s = \frac{1}{1+U_s}\underbrace{\frac{2\omega_{ps}^2}{k^2 v_{th,s,\parallel}^2}}_{\alpha^2 \frac{T_e}{T_s,\parallel}} \sum_n
+	\exp(-k_\perp^2 \bar{\rho}^2) I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[\frac{v_{th,s,\parallel}v_{th,s,\perp}^2}{v_{th,s,\parallel}v_{th,s,\perp}^2} 
+	- \frac{1}{v_{th,s,\parallel}v_{th,s,\perp}^2}
+	\bigg( \frac{n\Omega_{cs}v_{th,s,\parallel}^2}{k_\parallel} \\+ 
+	\Big[ \frac{\omega - n\Omega_{cs} - i \nu_s}{k_\parallel} \Big] v_{th,s,\perp}^2  \bigg)
+	\bigg( \underbrace{\sqrt{\pi} \exp[-y_n^2] \erfi[y_n]}_{2\Da(y_n)} + i\sqrt{\pi} \exp[-y_n^2] \bigg)
+	\Bigg].
+\end{multline}
+Using Eqs.~\ref{eq:a_Daw} and \ref{eq:a_alpha2} and distribute the $1/v_{th,s,\parallel}v_{th,s,\perp}^2$ into that first set of parentheses to get
+\begin{multline}
+	\chi_s = \frac{\alpha^2}{1+U_s} \frac{T_e}{T_{s,\parallel}} \sum_n
+	\exp(-k_\perp^2 \bar{\rho}^2) I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[ 1 - 
+	\bigg( \frac{n \Omega_{cs} v_{th,s,\parallel}^2}{k_\parallel v_{th,s,\parallel} v_{th,s,\perp}^2} + 
+	\Big[ \underbrace{\frac{\omega - n\Omega_{cs} - i \nu_s}{k_\parallel v_{th,s,\parallel}}}_{y_n} \Big] \frac{v_{th,s,\perp}^2}{v_{th,s,\perp}^2} 
+	\bigg) \\
+	* \bigg( 2 \Da[y_n] + i \sqrt{\pi} \exp[-y_n]^2
 	\bigg)
 	\Bigg]
 \end{multline}
-Use Eq.~\ref{eq:a_ln} to get
+Use Eq.~\ref{eq:a_yn} and simplify to get
 \begin{equation}
-	\chi_s = \frac{2 \omega_{ps}^2}{k_\parallel k^2 \sqrt{\pi} v_{th,s}^3 (1+U_s)}
-	\exp(-k_\perp^2 \bar{\rho}_s^2) 
-	\sum_n I_n(k_\perp^2 \bar{\rho}^2)
-	\Bigg[k_\parallel \sqrt{\pi} v_{th} 
-	+ \exp(-y_n^2) (\nu_s + i\omega)
-	\bigg( \pi i \erfi [y_n]  
-	- i [- i \pi]
+	\chi_s = \frac{\alpha^2}{1+U_s} \frac{T_e}{T_{s,\parallel}} \sum_n
+	\exp(-k_\perp^2 \bar{\rho}^2) I_n(k_\perp^2 \bar{\rho}^2)
+	\Bigg[ 1 - \bigg( \frac{n\Omega_{cs}v_{th,s,\parallel}}{k\parallel v_{th,s,\perp}^2} + y_n \bigg)
+	\bigg( 2 \Da[y_n] + i \sqrt{\pi} \exp[-y_n^2] \bigg)
+	\Bigg],
+\end{equation}
+which is the nice final answer.
+
+
+\subsection{Modified Distribution}
+The result from Mathematica is
+\begin{multline}
+	M_s = \frac{1}{|1+U_s|^2} \Bigg[
+	\frac{i}{2k_\parallel \sqrt{\pi} v_{th,s,\parallel}} \sum_n
+	\exp\bigg(\underbrace{ \frac{\nu_s^2-[-n\Omega_{cs}+\omega]^2-2i\nu[n\Omega_{cs}+\omega]}{k_\parallel^2 v_{th,s,\parallel}^2}}_{ -(y_n^*)^2 - \frac{4 i \nu_s n \Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2}}
+	- \underbrace{\frac{k_\perp^2 v_{th,s,\perp}^2}{2\Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2} \bigg) \\
+	* I_n \bigg( \underbrace{ \frac{k_\perp^2 v_{th,s,\perp}^2}{2\Omega_{cs}^2}}_{k_\perp^2 \bar{\rho}_s^2} \bigg)
+	\bigg( \exp\bigg[ \frac{4i\nu_s\omega}{k_\parallel^2v_{th,s,\parallel}^2} \bigg]
+	\bigg[ \pi \erfi \bigg( \underbrace{\frac{i\nu_s+n\Omega_{cs}-\omega}{k_\parallel v_{th,s,\parallel}}}_{-y_n} \bigg) 
+	+\underbrace{\ln \bigg( \frac{k_\parallel}{i\nu_s + n\Omega_{cs} - \omega} \bigg)
+	- \ln \bigg( \frac{k_\parallel}{-i\nu_s - n\Omega_{cs} + \omega} \bigg)}_{-i\pi} 	\bigg] \\
+	+ \exp \bigg[ \frac{4i\nu_sn\Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2} \bigg]
+	\bigg[ \pi \erfi \bigg( \underbrace{\frac{i\nu_s-n\Omega_{cs}+\omega}{k_\parallel v_{th,s,\parallel}}}_{y_n^*} \bigg) 
+	+\ln \bigg( \underbrace{\frac{k_\parallel}{-i\nu_s + n\Omega_{cs} - \omega} }_{-1/v_{th,s,\parallel} y_n^*}\bigg)
+	- \ln \bigg( \underbrace{ \frac{k_\parallel}{i\nu_s - n\Omega_{cs} + \omega}}_{1/v_{th,s,\parallel} y_n^*}	\bigg) \Bigg]
+	- \frac{|U_s|^2}{\nu_s|1+U_s|^2}.
+\end{multline}
+Use Eqs.~\ref{eq:a_ynstar}, \ref{eq:a_k2rho2}, \ref{eq:a_-yn}, \ref{eq:a_vthynstar}, \ref{eq:a_ynstar_plus}, and \ref{eq:a_lnipi} to get
+\begin{multline}
+	M_s = - \frac{|U_s|^2}{\nu_s |1+U_s|^2}+\frac{1}{|1+U_s|^2}
+	\Bigg[\frac{i}{2k_\parallel \sqrt{\pi} v_{th,s,\parallel} }\sum_n
+	\exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2)
+	\exp\big(-[y_n^*]^2\big)
+	\exp \bigg( -\frac{4 i \nu_s n\Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2}\bigg) \\
+	* \bigg( \exp \bigg[ \frac{4i\nu_s\omega}{k_\parallel^2 v_{th,s,\parallel}^2}\bigg]
+	  \bigg[ \pi \underbrace{\erfi(-y_n)}_{-\erfi(y_n)} - i\pi\bigg]
+	  + \exp\bigg[ \frac{4i\nu_sn\Omega_{cs}}{k_\parallel^2v_{th,s,\parallel}^2} \bigg]
+	  \bigg[ \pi \erfi(y_n^*)
+	   - \ln \bigg( -\frac{1}{v_{th,s,\parallel}y_n^*} \bigg) 
+	   + \ln \bigg( \frac{1}{v_{th,s,\parallel}y_n^*} \bigg)\bigg]
+	   \bigg)
+	\Bigg].
+\end{multline}
+Use Eq.~\ref{eq:a_erfi_odd}, distribute $\exp(-4i\nu_sn\Omega_{cs}/k_\parallel^2v_{th,s,\parallel}^2)$ into the parentheses,
+and factor out a negative one from both of the natural log terms to get
+\begin{multline}
+	M_s = -\frac{|U_s|^2}{\nu_s|1+U_s|^2} + \frac{1}{|1+U_s|^2} \Bigg[
+	\frac{i}{2 k_\parallel \sqrt{\pi} v_{th,s,\parallel}} \sum_n
+	\exp\big(-[y_n^*]^2\big) \exp(-k_\perp^2\bar{\rho}_s^2) I_n(k_\perp^2 \bar{\rho}_s^2)\\
+	* \bigg( \exp \bigg[ \underbrace{\frac{4i\nu_s\omega}{k_\parallel^2 v_{th,s,\parallel}^2} - 
+		\frac{4i\nu_s\Omega_{cs}}{k_\parallel^2v_{th,s,\parallel}^2}}_{\frac{4i\nu_s\omega (\omega - n\Omega_{cs})}{k_\parallel^2v_{th,s,\parallel^2}}} \bigg]
+	\bigg[ -\pi \erfi(y_n) - i \pi \bigg]
+	+ \underbrace{\exp\bigg[ \frac{4i\nu_sn\Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2} - \frac{4i\nu_s n\Omega_{cs}}{k_\parallel^2 v_{th,s,\parallel}^2} \bigg]}_{1}
+	\bigg[ \pi \erfi(y_n^*) \\
+	- \bigg( \underbrace{\ln \bigg[ -\frac{1}{v_{th,s,\parallel}y_n^*}\bigg] - \ln \bigg[\frac{1}{v_{th,s,\parallel}y_n^*}\bigg]  \bigg) }_{i\pi}\bigg]
 	\bigg)
+	\Bigg].
+\end{multline}
+Combine the terms in the last two exponentials and use Eq.~\ref{eq:a_lnipistar} to get
+\begin{multline}
+	M_s = -\frac{|U_s|^2}{\nu_s|1+U_s|^2} + \frac{1}{|1+U_s|^2} 
+	\Bigg[ \frac{i}{2 k_\parallel \sqrt{\pi} v_{th,s,\parallel}} 
+	\sum_n \exp(-k_\perp^2\bar{\rho}^2) I_n(k_\perp^2\bar{\rho}^2)\exp\big( -[y_n^*]^2\big) 	\\
+	* \bigg( \exp \bigg[ \frac{i\nu_s (\omega-n\Omega_{cs})}{k_\parallel^2v_{th,s,\parallel}^2} \bigg] 
+	\bigg[ \pi \erfi(y_n) - i \pi\bigg] + \pi \erfi(y_n^*) - i \pi \bigg)
+	\Bigg].
+\end{multline}
+Distribute in the $i$ and factor out the $\pi$ in the parentheses to get
+\begin{multline}
+	M_s = -\frac{|U_s|^2}{\nu_s|1+U_s|^2} + \frac{1}{|1+U_s|^2} 
+	\Bigg[ \frac{\pi}{2 k_\parallel \sqrt{\pi} v_{th,s,\parallel}}
+	\sum_n \exp(-k_\perp^2\bar{\rho}^2) I_n(k_\perp^2\bar{\rho}^2)\exp\big( -[y_n^*]^2\big) 	\\
+	* \bigg( \exp \bigg[ \frac{i\nu_s (\omega-n\Omega_{cs})}{k_\parallel^2v_{th,s,\parallel}^2} \bigg] 
+	\bigg[ - \underbrace{ i \erfi(y_n)}_{\erf(iy_n)} - i^2 \bigg] + \underbrace{i \erfi(y_n^*)}_{\erf(iy_n^*)} - i^2 \bigg)
 	\Bigg]
-\end{equation}
-Distribute $1/k_\parallel \sqrt{\pi} v_{th,s}$ to get
-\begin{equation}
-	\chi_s = \frac{2\omega_{ps}^2}{k^s v_{th,s}^2 (1+U_s)}
-	\exp(-k_\perp^2 \bar{\rho}^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
-	\Bigg[
-	1 + \frac{\nu_s+i\omega}{k_\parallel \sqrt{\pi} v_{th,s}}
-	\exp(-y_n^2) 
-	\pi i 
-	\bigg( \erfi[y_n] + i  \bigg)
-	\Bigg]
-\end{equation}
-Combine $\pi$ and $i$ terms to get
-\begin{equation}
-	\chi_s = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2 (1+U_s)} 
-	\exp(-k_\perp^2 \bar{\rho}_s^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
-	\Bigg[
-	1 + \frac{i \nu_s - \omega}{k_\parallel v_{th}}
-	\exp(-y_n^2) 
-	\sqrt{\pi}
-	\bigg( 	\erfi[y_n] + i\bigg)
-	\Bigg]
-\end{equation}
-Distribute $\sqrt{\pi}\exp(-y_n^2)$ and take a negative out of $i\nu_s-\omega$ to get
-\begin{equation}
-	\chi_s = \frac{2 \omega_{ps}^2}{k^2 v_{th,s}^2 (1+U_s)}
-		\exp(-k_\perp^2 \bar{\rho}_s^2)
-	\sum_n I_n (k_\perp^2 \bar{\rho}_s^2)
-	\Bigg[
-	1 - \frac{\omega - i \nu_s}{k_\parallel v_{th}}
-	\exp(-y_n^2)
-	\bigg( 	\sqrt{\pi} \exp(-y_n^2)\erfi[y_n] + i\sqrt{\pi} \exp(-y_n^2)\bigg)
-	\Bigg]
-\end{equation}
-Using Eqs.~\ref{eq:a_Daw} and \ref{eq:a_alpha2}, we get
-\begin{equation}
-	\chi_s = \frac{\alpha^2}{1+U_s} \frac{T_e}{T_s}
-	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2)
-	I_n (k_\perp^2 \bar{\rho}_s^2)
-	\Bigg[
-	1 - \frac{\omega -i\nu_s}{k_\parallel v_{th,s}}
-	\bigg(
-	2 \Da[y_n] + i \sqrt{\pi} \exp[-y_n^2]
-	\bigg)
-	\Bigg]
-\end{equation}
+\end{multline}
+Simplify the $i$ terms and use Eq.~\ref{eq:a_erfiyn} to get
+\begin{multline}
+	M_s = -\frac{|U_s|^2}{\nu_s|1+U_s|^2} + \frac{1}{|1+U_s|^2} 
+	\Bigg[ \frac{\sqrt{\pi}}{2 k_\parallel  v_{th,s,\parallel}}
+	\sum_n \exp(-k_\perp^2\bar{\rho}^2) I_n(k_\perp^2\bar{\rho}^2)\exp\big( -[y_n^*]^2\big) 	\\
+	* \bigg( \exp \bigg[ \frac{i\nu_s (\omega-n\Omega_{cs})}{k_\parallel^2v_{th,s,\parallel}^2} \bigg] 
+	\bigg[\underbrace{1 - \erf(iy_n)}_{\erfc(i y_n)}  \bigg] +\erf(iy_n^*) + 1 \bigg)
+	\Bigg].
+\end{multline}
+Use Eq.~\ref{eq:a_erfc} to get
+\begin{multline}
+	M_s = -\frac{|U_s|^2}{\nu_s|1+U_s|^2} + \frac{1}{|1+U_s|^2} 
+	\Bigg[ \frac{\sqrt{\pi}}{2 k_\parallel v_{th,s,\parallel}}
+	\sum_n \exp(-k_\perp^2\bar{\rho}^2) I_n(k_\perp^2\bar{\rho}^2)\exp\big( -[y_n^*]^2\big) 	\\
+	* \bigg( \exp \bigg[ \frac{i\nu_s (\omega-n\Omega_{cs})}{k_\parallel^2v_{th,s,\parallel}^2} \bigg] 
+	\erfc(i y_n)+\erf(iy_n^*) + 1 \bigg)
+	\Bigg],
+\end{multline}
+which is the final nice form.  
 
+REDO ALL OF THIS MODIFIED DISTRIBUTION STUFF. IT'S NOT QUITE RIGHT.
 
-
-
-
-
-
-
-
-
-
+Rewrite all the final equations here. Then eventually show how this result simplifies to the fully Maxwellian case in the limit where $v_{th,s,\perp}=v_{th,s,\parallel}$.	
