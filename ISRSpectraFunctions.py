@@ -121,7 +121,7 @@ def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpa
     # Save the wavenumbers, collision frequency, and mass. 
     # These are used to calculate U, M, and chi later
     param_file = open(fileDir + fileName + '_param.txt', 'w')
-    param_file.write('kperp: %.18e\nkpar: %.18e\nnu: %.18e\nm: %.18e' % (kpar, kperp, nu, m))
+    param_file.write('kperp: %.18e\nkpar: %.18e\nnu: %.18e\nm: %.18e' % (kperp, kpar, nu, m))
     param_file.close()
     
     # Save omega
@@ -195,7 +195,7 @@ def loadSumData(fileName):
     kperp = float(param_data_lines[0][7:-1])
     kpar = float(param_data_lines[1][6:-1])
     nu = float(param_data_lines[2][3:-1])
-    m = float(param_data_lines[3][3:-1])
+    m = float(param_data_lines[3][3:])
     param_data_file.close()
     
     return sum_U, sum_M, sum_chi, omega, kperp, kpar, nu, m
@@ -237,10 +237,10 @@ def checkSumConvergence(fileName, TOL):
     # Initialize figure
     font = {'size'   : 22}
     mpl.rc('font', **font)
-    fig = plt.figure(1, figsize=(8,6))
+    figConverge = plt.figure(1, figsize=(8,6))
     gs = gridspec.GridSpec(1,1)
     gs.update(left=0.17, right=.99, bottom=.14, top=.95, wspace=0.15, hspace=.015)
-    fig.patch.set_facecolor('white')
+    figConverge.patch.set_facecolor('white')
     ax = plt.subplot(gs[0])
     
     ax.plot(nArray, Re_U_error,'--',linewidth=2,color='C0',label='Re($U$)')
@@ -257,12 +257,15 @@ def checkSumConvergence(fileName, TOL):
     ax.legend(ncols=1,loc='lower left')#,bbox_to_anchor=  (1.04,-.05,.4,.8))
     
     if (np.array([Re_U_error[-1], Im_U_error[-1], Re_M_error[-1], Re_chi_error[-1], Im_chi_error[-1]])<TOL).all():
-        print(fileName + "has converged.")
+        print(fileName + " has converged.")
+        converged = True
     else:
-        print(fileName + "has not converged.")
+        print(fileName + " has not converged.")
+        converged = False
     
-    fig.savefig(fileName+'_convergenceCheck.png',format='png')
-
+    figConverge.savefig(fileName+'_convergenceCheck.png',format='png')
+    plt.close(figConverge)
+    return converged
 
 ###############################################################################
 

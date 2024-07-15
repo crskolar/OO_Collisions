@@ -714,3 +714,38 @@ which is the final nice form.
 REDO ALL OF THIS MODIFIED DISTRIBUTION STUFF. IT'S NOT QUITE RIGHT.
 
 Rewrite all the final equations here. Then eventually show how this result simplifies to the fully Maxwellian case in the limit where $v_{th,s,\perp}=v_{th,s,\parallel}$.	
+
+\section{Pole Integrals for a Maxwellian}
+\label{a:poleIntegrals_Maxwellian}
+This section provides the simplifications for the analytical solutions for the pole integrations of a normalized Maxwellian.
+Initial analytical solutions are obtained from the Mathematica notebook \verb*|exact_poleIntegrate.nb|.
+
+Consider a Maxwellian distribution of the form
+\begin{equation}
+	f = \exp(-v^2).
+	\label{eq:a_maxwellian}
+\end{equation}
+
+For a singular pole at $z$, the exact solution is
+\begin{equation}
+	p_1(z) = \int_{-\infty}^\infty \frac{f}{v-z} dv = 
+	\exp(-z^2) \Bigg[ -\pi \erfi(z) + \ln\bigg(\frac{1}{z}\bigg) + \ln(z)   \Bigg].
+\end{equation}
+We will call this solution function $p_1(z)$ since it will be used to define the solutions to the more complicated pole integrals.
+
+For a set of poles at $z$ and its complex conjugate $z^*$, the exact solution is
+\begin{align}
+	p_*(z) &=  \int_{-\infty}^\infty \frac{f}{(v-z)(v-z^*)} dv  \nonumber \\
+	&= \frac{i}{\im(z)} \Bigg\{ \underbrace{\exp(-z^2) \Bigg[ \pi \erfi(z) - \ln\bigg(\frac{1}{z}\bigg) - \ln(z)  \Bigg]}_{-p_1(z)}
+	+ \underbrace{\exp\big(-[z^*]^2\big) \Bigg[ -\pi \erfi(z^*) + \ln \bigg(\frac{1}{z^*} + \ln(z^*) \bigg) \Bigg]}_{p_1(z^*)}
+	\Bigg\}	\nonumber \\
+	&= \frac{i}{2\im(z)} \bigg[ p_1(z^*) - p_1(z) \bigg].
+\end{align}
+As can be seen, the result can be written based on the function $p_1(z)$.
+
+Lastly, for a second order pole at $z$, the solution is
+\begin{align}
+	p_2(z) &= \int_{-\infty}^\infty \frac{f}{(v-z)^2} dv  \nonumber \\
+	&= -2 \sqrt{\pi} - 2\underbrace{ \exp(-z^2) \Bigg[ -\pi \erfi(z) + \ln\bigg(\frac{1}{z}\bigg) + \ln(z)  \Bigg]}_{p_1(z)} \nonumber \\
+	&= -2 \sqrt{\pi} - 2 p_1(z).
+\end{align}

@@ -14,15 +14,16 @@
 \label{s:ISR-spectra}
 The scattering spectra, $S$, of an electromagnetic wave on a one ion species magnetized collisional plasma is
 \begin{equation}
-	S(\omega,\mathbf{k}) = 2 \Big| 1 - \frac{\chi_e}{\epsilon}\Big|^2
+	S(\omega,\mathbf{k}) = 2 \Big| 1 - \frac{\chi_e}{\epsilon}\Big|^2 M_e
 	+ 2\Big|\frac{\chi_e}{\epsilon}\Big|^2 M_i,
-	\label{eq:scatterin-spectra}
+	\label{eq:scattering-spectra}
 \end{equation}
 where $\chi$ is the susceptibility, 
 $M$ is the modified distribution function,
 and $\epsilon$ is the dielectric function defined as
 \begin{equation}
 	\epsilon = 1 + \chi_e + \chi_i.
+	\label{eq:dielectric}
 \end{equation}
 To obtain these values, we first need to calculate the collisional term, $U_s$. % Include something on the collisional terms
 For a species $s$ with normalized distribution function $f_{0s}(v)$, the 
@@ -31,6 +32,7 @@ For a species $s$ with normalized distribution function $f_{0s}(v)$, the
 	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
 	{\omega - k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}  
 	f_{0s}(v)   d\mathbf{v}^3 ,
+	\label{eq:Us}
 \end{equation}
 where $\nu$ is the total collision frequency,
 $\Omega_{c}$ is the gyrofrequency,
@@ -42,6 +44,7 @@ The susceptibility is
 	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
 	{\omega - k_\parallel v_\parallel - n\Omega_{cs} - i\nu_s}  
 	\mathbf{k} \cdot \frac{\partial f_{0s}}{\partial \mathbf{v}}   d\mathbf{v}^3 ,
+	\label{eq:chis}
 \end{equation} 
 where $\omega_p$ is the plasma frequency
 and the derivative term is defined as
@@ -49,6 +52,7 @@ and the derivative term is defined as
 	\mathbf{k} \cdot \frac{\partial f_{0s}}{\partial \mathbf{v}} = 
 	k_\parallel \frac{\partial f_{0s}}{\partial v_\parallel}
 	+ \frac{n \Omega_{cs}}{v_\perp} \frac{\partial f_{0s}}{\partial v_\perp}.
+	\label{eq:chis_derivative}
 \end{equation}
 The modified distribution function is 
 \begin{equation}
@@ -58,6 +62,7 @@ The modified distribution function is
 	\frac{J_n^2\Big( \tfrac{k_\perp v_\perp}{\Omega_{cs}} \Big)}
 	{(\omega - k_\parallel v_\parallel - n\Omega_{cs})^2 + \nu_s^2}
 	f_{0s}(v)   d\mathbf{v}^3 \Bigg).
+	\label{eq:Ms}
 \end{equation}
 
 For a normalized Maxwellian distribution,

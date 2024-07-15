@@ -66,21 +66,21 @@ def calcIntegrand(f, v, z, order):
     return integrand
 
 # Make the delta v and velocity mesh
-dv_order = -0.
+dv_order = -3.
 dv = 10**dv_order
 v = np.arange(-4,4+dv,dv)
 
 f0 = np.exp(-v*v)
 
 [a, b] = getLinearInterpCoeff(v, f0)
-linearCoeff = getLinearInterpCoeff2(v, f0)
+# linearCoeff = getLinearInterpCoeff2(v, f0)
 
 # cubicFunction = CubicSpline(v, f0)
 # cubicCoeff = cubicFunction.c
 
 # Make an array of gammas ranging from 1e-6 to 1e0
 gamma = np.logspace(-6,0,51)
-real_z = 0.25  # This   is the real part of z. Choice is arbitrary.
+real_z = 0.0#0.25  # This   is the real part of z. Choice is arbitrary.
 z = real_z - 1j*gamma
 
 # Initialize pole integration values
@@ -199,4 +199,4 @@ ax[0].legend(['Exact','Trapz'])
 ax[1].legend()
 ax[4].legend()
 
-fig.savefig('C:/Users/Chirag/Documents/repos/OO_Collisions/Documentation/figures/poleIntegrate_error_%d.pdf' % (dv_order),format='pdf')
+fig.savefig('C:/Users/Chirag/Documents/repos/OO_Collisions/Documentation/figures/poleIntegrate_pole0_error_%d.pdf' % (dv_order),format='pdf')

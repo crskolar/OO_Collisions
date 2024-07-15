@@ -74,7 +74,7 @@ mesh_n = 500
 # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
 cs = (5/3*kB*(Ti+Te)/mi)**.5
 omega_bounds = round(cs*k_ISR*3,-3)
-omega = np.linspace(-omega_bounds,omega_bounds,101)
+omega = np.linspace(-omega_bounds,omega_bounds,201)
 
 # load data
 sum_U_i = np.loadtxt(fileDir + fileName + '_sum_U.txt', dtype=np.complex_)
@@ -121,19 +121,19 @@ for i in range(0,4):
     ax.append(plt.subplot(gs[i]))
 
 ax[0].plot(omega, M_i_bimax, linewidth=3, color='k')
-ax[0].plot(omega, M_i, '--', linewidth=3, color='C1')
+# ax[0].plot(omega, M_i, '--', linewidth=3, color='C1')
 
 l1 = ax[1].plot(omega, np.real(chi_i_bimax), linewidth=3, color='k',label='Exact')
-l2 = ax[1].plot(omega, np.real(chi_i), '--', linewidth=3, color='C1',label='Approx')
+# l2 = ax[1].plot(omega, np.real(chi_i), '--', linewidth=3, color='C1',label='Approx')
 
 ax[2].plot(omega, np.imag(chi_i_bimax), linewidth=3, color='k')
-ax[2].plot(omega, np.imag(chi_i), '--', linewidth=3, color='C1')
+# ax[2].plot(omega, np.imag(chi_i), '--', linewidth=3, color='C1')
 
 ax[3].plot(omega, S_exact,linewidth=3,color='k')
-ax[3].plot(omega, S,'--',linewidth=3,color='C1')
+# ax[3].plot(omega, S,'--',linewidth=3,color='C1')
 
 ax[2].legend(handles=l1,loc='upper right')
-ax[1].legend(handles=l2,loc='upper right')
+# ax[1].legend(handles=l2,loc='upper right')
 
 ax[3].set_xlabel('$\omega$ (rad/s)')
 

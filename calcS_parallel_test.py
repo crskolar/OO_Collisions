@@ -9,11 +9,11 @@ from ISRSpectraFunctions import *
 import scipy.special as sp
 import logging
 
-fileDir = '/mnt/c/Users/Chirag/Documents/O+O/data/maxwellian_all/'
-fileName = 'par2_perp1_theta10'
+fileDir = '/mnt/c/Users/Chirag/Documents/O+O/data/toroidal_ions/'
+fileName = 'par2.3_perp2_Goodwin_Te4000_theta80'
 num_proc = 10
 initialize_logger(fileName, fileDir, num_proc)
-angle = 10
+angle = 80
 
 total_processors = mp.cpu_count()
 
@@ -32,18 +32,18 @@ c = const.c
 
 # Set background parameters based on a reasonable F region plasma 
 B = 1e-5
-nu_ISR = 450e6
+nu_ISR = 440e6
 
 Tn = 1000
-nn = 1e14   # m^-3
+nn = 1.8e14   # m^-3
 
 Tipar = 1000
-Tiperp = 1000
+Tiperp = 2000
 Ti = (Tipar+2*Tiperp)/3
 mi = 16*u
 ni = 1e11
 
-Te = 1000.
+Te = 4000.
 ne = 1e11
 nuen = 8.9e-11*nn/1e6*(1+5.7e-4*Te)*Te**.5
 nuei = 54.5*ni/1e6/Te**1.5
@@ -78,24 +78,24 @@ alpha = 1/k_ISR/lambdaD
 
 # Set parameters for calculation of modified ion distribution and ion suseptability
 nStart = 0
-nmax = 2000
+nmax = 1000
 
 # Make the array for omega based on 3 times ion acoustic speed. (assume gamma_e=gamma_i=5/3)
 cs = (5/3*kB*(Ti+Te)/mi)**.5
-omega_bounds = round(cs*k_ISR*3,-3)
+omega_bounds = round(cs*k_ISR*4,-3)
 omega = np.linspace(-omega_bounds,omega_bounds,101)
 
-dvpar_order = -2.0
+dvpar_order = -2.3
 dvpar = 10**dvpar_order*vthipar
 vpar = np.arange(-4*vthipar,4*vthipar+dvpar,dvpar)
-dvperp = 10**-1*vthiperp
+dvperp = 10**-2*vthiperp
 vperp = np.arange(0,4*vthiperp+dvperp,dvperp)
 
 
 # tracemalloc.start()
 [VVperp, VVpar] = np.meshgrid(vperp, vpar)
 
-Dstar = 0.0#1.8
+Dstar = 1.8
 
 # Build distribution function
 def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
