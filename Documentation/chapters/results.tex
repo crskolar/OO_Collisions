@@ -1,0 +1,38 @@
+\chapter{Results}
+
+\section{Maxwellian}
+
+These are parameters for the calculation in Fig.~\ref{f:compareMaxwellian}.
+Angle is $60^\circ$. 
+Radar frequency is \SI{230}{\mega\hertz} which corresponds to EISCAT VHF and EISCAT 3D radars.  % Citation here?
+Magnetic field strength is $10^{-5}$ \si{\tesla}.
+The neutral, ion, and electron temperature are all $T_i=T_e=T_n=\SI{1000}{\kelvin}$.
+The neutral number density is \SI{1.8e14}{\meter^{-3}}.
+The plasma is quasineutral with $n_i=n_e=10^9$ \si{\meter^{-3}}.
+Atomic oxygen is the ion species.
+The numerical calculation is done using $n_{\max}$ of 2000 for the ions and 50 for the electrons (these two are expected to be overkill for the calculation).
+
+\begin{figure}[!htb]
+	\includegraphics[width=\linewidth]{compareMaxwellian.pdf}
+	\caption{Comparison between exact solution and numerical solution for a Maxwellian plasma.}
+	\label{f:compareMaxwellian}
+\end{figure}
+
+
+\section{Toroidal}
+
+These plots were made using Eq.~\ref{eq:toroidal_dist} as the base distribution with the exact parameters from \cite{goodwin2018} for the background plasma and radar parameters.
+The equivalent temperature Maxwellian is calculated using the method in Sec.~\ref{s:equiv-temp-known}.
+
+\begin{figure}[!htb]
+	\includegraphics[width=\linewidth]{par2.3_perp2_Goodwin_Te4000_theta80_spectrum.png}
+	\caption{Plots of plasma with toroidal ion distribution (orange line) compared to the equivalent temperature Maxwellian (black line).
+	Color plot is the 2D $v_\perp v_\parallel$ representation of the distribution function from Eq.~\ref{eq:toroidal_dist}.
+	The line on the color plot is the radar wave vector direction.
+	The bottom left panel is the distribution function along wavevector direction.
+	The top right panel is the modified distribution function.
+	The middle right panels are the real and imaginary parts of the ion susceptibility, respectively.
+	The bottom right panel is the ISR spectrum.
+	The triple hump is shown, as expected based on \cite{goodwin2018}.}
+	\label{f:toroidal}
+\end{figure}

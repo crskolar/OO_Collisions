@@ -117,11 +117,11 @@ def calcSumTerms(nBase, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu):
 
 # A parallelized function that will call calcSumTerms and iterate from -nmax to nmax
 # Will output all of the individual summation terms as an array
-def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu, m, fileDir, fileName):
-    # Save the wavenumbers, collision frequency, and mass. 
+def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu, m, wp, fileDir, fileName):
+    # Save the wavenumbers, collision frequency, mass, and plasma frequency. 
     # These are used to calculate U, M, and chi later
     param_file = open(fileDir + fileName + '_param.txt', 'w')
-    param_file.write('kperp: %.18e\nkpar: %.18e\nnu: %.18e\nm: %.18e' % (kperp, kpar, nu, m))
+    param_file.write('kperp: %.18e\nkpar: %.18e\nnu: %.18e\nm: %.18e\nwp: %.18e' % (kperp, kpar, nu, m, wp))
     param_file.close()
     
     # Save omega
@@ -195,10 +195,11 @@ def loadSumData(fileName):
     kperp = float(param_data_lines[0][7:-1])
     kpar = float(param_data_lines[1][6:-1])
     nu = float(param_data_lines[2][3:-1])
-    m = float(param_data_lines[3][3:])
+    m = float(param_data_lines[3][3:-1])
+    wp = float(param_data_lines[4][4:])
     param_data_file.close()
     
-    return sum_U, sum_M, sum_chi, omega, kperp, kpar, nu, m
+    return sum_U, sum_M, sum_chi, omega, kperp, kpar, nu, m, wp
 
 # Check the spectrum for convergence in terms of number of summation terms (n)
 # We will do this by testing differences with each succesive summation in U, M, and chi

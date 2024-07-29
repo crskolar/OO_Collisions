@@ -266,7 +266,7 @@ However, as will be shown in a few figures below, we found that this method was 
 	\centering
 	\includegraphics[width=.7\linewidth]{explain.pdf}
 	\caption{An example of the representation of a normalized Maxwellian distribution (blue line) with 
-	known discrete values (black dots) using either a linear interpolation (orange lines)
+	known discrete values (black squares) using either a linear interpolation (green lines)
 	or a refined mesh about the pole (red dots) \citep{longley2024}.
 	The vertical dashed line represents the real component of the pole, which is defined as $z=\pi/12-10^{-3}i$.}
 	\label{f:explainIntegrationMethod}
@@ -519,6 +519,7 @@ Track down how other people have done the plasma dispersion relation calculation
 
 
 \subsection{Calculating temperature in arbitrary direction}
+\label{s:equiv-temp-known}
 
 This section discusses numerical methods used to calculate the temperature in an arbitrary direction.
 From a practical perspective, we can use this to get the line of sight temperature, which is what a radar will see.

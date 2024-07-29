@@ -749,3 +749,90 @@ Lastly, for a second order pole at $z$, the solution is
 	&= -2 \sqrt{\pi} - 2\underbrace{ \exp(-z^2) \Bigg[ -\pi \erfi(z) + \ln\bigg(\frac{1}{z}\bigg) + \ln(z)  \Bigg]}_{p_1(z)} \nonumber \\
 	&= -2 \sqrt{\pi} - 2 p_1(z).
 \end{align}
+
+\subsection{Relationship between $\Da$, $Z$, and $\erfi$}
+In this section, we will discuss how the plasma dispersion function, Dawson function, and imaginary error function are related.
+
+The plasma dispersion function, $Z(\zeta)$ is defined as
+\begin{equation}
+	Z(\zeta) = \pi^{-1/2} \int_{-\infty}^{\infty} 
+	\frac{\exp(-t^2)}{t-\zeta} dt.
+	\label{eq:plasma-dispersion-function}
+\end{equation}
+We can write this in another form that is more convenient to us. 
+First, consider the boundary for when $\zeta$ approaches 0 from the upper half of the complex plane:
+\begin{equation}
+	Z(0) = \pi^{-1/2}P\int_{-\infty}^\infty 
+	\frac{\exp(-t^2)}{t}dt + i \sqrt{\pi} = i \sqrt{\pi}.
+	\label{eq:Z0}
+\end{equation}
+The principal part of the integral goes to zero because it is the fully space integral of an odd function which goes to zero, yielding only $i\sqrt{\pi}$.
+
+Next, take the derivative of $Z$ with respect to $\zeta$ to get
+\begin{equation}
+	\frac{dZ}{d\zeta} = - \pi^{1/2} \int_{-\infty}^\infty
+	\frac{2 t}{t-\zeta} \exp(-t^2)dt 
+	= -2(1+\zeta Z) % Is this last part important for us at all?
+	\label{eq:dZdzeta}
+\end{equation}
+Solve the linear differential equation in Eq.~\ref{eq:dZdzeta} with the integration factor $\exp(\zeta^2)$ using the boundary condition at $\zeta=0$ from Eq.~\ref{eq:Z0} to get
+\begin{equation}
+	Z(\zeta) = \exp(-\zeta^2)
+	\bigg( i\sqrt{\pi} - 2 \int_0^\zeta \exp(x^2)dx  \bigg)
+\end{equation}
+Make the substitution in the integral that $t = ix$. In addition, note that
+\begin{equation}
+	\int_{-\infty}^0 \exp(-t^2) dt = \frac{\sqrt{\pi}}{2},
+\end{equation}
+to get
+\begin{equation}
+	Z(\zeta) = \exp(-\zeta^2)
+	\bigg( i\underbrace{\sqrt{\pi}}_{2\int_{-\infty}^0 \exp(-t^2)dt} - 2 \int_0^{i\zeta} \exp(-t^2)dt  \bigg).
+\end{equation}
+After simplifying, we get
+\begin{equation}
+	Z(\zeta) = 2i \exp(-\zeta^2) \int_{-\infty}^{i\zeta} \exp(-t^2)dt.
+\end{equation}
+The integral is just the definition of the error function with an imaginary argument:
+\begin{equation}
+	Z(\zeta) = i \sqrt{\pi} \exp(-\zeta^2) \Big[ 1 + \erf(i\zeta) \Big].
+	\label{eq:Z-with-erf}
+\end{equation}
+Using the definition of the imaginary error function, we can write Eq.~\ref{eq:Z-with-erf} as
+\begin{equation}
+	Z(\zeta) = i\sqrt{\pi} \exp(-\zeta^2) \Big[ 1+i\erfi(\zeta) \Big].
+	\label{eq:Z-with-erfi}
+\end{equation}
+Using the relationship from Eq.~\ref{eq:a_Daw}, we can write Eq.~\ref{eq:Z-with-erfi} in terms of the Dawson function (or integral) as
+\begin{equation}
+	Z(\zeta) = i \sqrt{\pi} \exp(-\zeta^2) - 2 \Da(\zeta).
+	\label{eq:Z-with-Da}
+\end{equation}
+
+So now, the goal is to rewrite Eqs.~\ref{eq:Us_exact} and \ref{eq:chis_exact} in terms of the plasma dispersion function.
+First, solve Eq.~\ref{eq:Z-with-Da} for $2Da(\zeta)$ to get
+\begin{equation}
+	2\Da(\zeta) = i\sqrt{\pi} \exp(-\zeta^2) -Z(\zeta).
+	\label{eq:Da-with-Z}
+\end{equation}
+Substituting Eq.~\ref{eq:Da-with-Z} into Eqs.~\ref{eq:Us_exact} and \ref{eq:chis_exact} gives
+\begin{equation}
+	U_s = 
+	\frac{i \nu_{s}}{k_\parallel v_{th,s}} 
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) 
+	\Big[ 2 i \sqrt{\pi} \exp(-y_n^2) - Z(y_n)\Big]
+	\label{eq:Us_exact_Z}
+\end{equation}
+\begin{equation}
+	\chi_s = 
+	\frac{\alpha^2}{1+U_s} \frac{T_e}{T_s} 
+	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) 
+	\bigg[ 1 - \frac{\omega-i\nu_s}{k_\parallel v_{th,s}} 
+	\Big( 2 i \sqrt{\pi} \exp[-y_n^2] - Z(y_n) \Big)
+	\bigg]
+	\label{eq:chis_exact_Z}
+\end{equation}
+
+
+
+

@@ -30,7 +30,7 @@ gamma = np.logspace(-6,0,51)
 # This is the real part of z. Choice is arbitrary.
 # For this test, we will be using a z that IS on one of the og mesh points
 # This is probably the ideal case of dealing with the poles
-real_z = 1.0
+real_z = 0.0
 z = real_z - 1j*gamma
 
 # This is the extra number of refined points about the pole using the Longley refinement method
@@ -144,6 +144,7 @@ for dv_order in dv_order_list:
     ax[3].set_ylabel('Imag')
     
     ax[0].set_ylim(-.6e-12,1e-12)
+    # ax[0].set_ylim(-2.1,-.4)
     ax[1].set_ylim(-.1e6,3.6e6)
     ax[2].set_ylim(-8,8)
     ax[3].set_ylim(-7,0.2)
@@ -167,7 +168,7 @@ for dv_order in dv_order_list:
     ax[1].legend()
     ax[4].legend()
     
-    fig.savefig('C:/Users/Chirag/Documents/repos/OO_Collisions/Documentation/figures/poleIntegrate_error_pole1_%d.pdf' % (dv_order),format='pdf')
+    fig.savefig('C:/Users/Chirag/Documents/repos/OO_Collisions/Documentation/figures/poleIntegrate_error_pole0_%d.pdf' % (dv_order),format='pdf')
     
     for k in range(0,6):
         ax[k].remove()

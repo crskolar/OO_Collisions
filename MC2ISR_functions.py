@@ -33,10 +33,10 @@ def getVInterp(poles, v_input, mesh_n):
         im_v = np.imag(poles[i])
         
         # Make bounds for adaptive mesh based on size of imaginary component
-        v_0 = re_v - 30*im_v;
+        v_0 = re_v - 10*im_v;
         v_1 = re_v - 2*im_v;
         v_2 = re_v + 2*im_v;
-        v_3 = re_v + 30*im_v
+        v_3 = re_v + 10*im_v
         
         # Make new mesh based on all thes bounds
         v_mesh = np.concatenate((np.linspace(v_0,v_1,mesh_n),np.linspace(v_1,v_2,mesh_n),np.linspace(v_2,v_3,mesh_n)))

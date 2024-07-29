@@ -73,16 +73,16 @@ For a singular pole at $z$, the exact solution is
 \end{equation}
 For utility later with the other solutions, we will call this solution $p_1(z)$.
 
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=\linewidth]{p1.pdf}
-	\caption{Comparisons for a single pole integral calculation *Eq.~\ref{eq:exact_single_pole})
-		between the pole refined mesh integration function we made (blue circles), % Eventually say that better 
-		a naive trapezoidal integration not considering effects of poles (orange dots), and
-		the exact solution described by Eq.~\ref{eq:exact_single_pole} (black line)
-		for varying $\Delta v$.}
-	\label{f:single_pole_comparison}
-\end{figure}
+%\begin{figure}[!htb]
+%	\centering
+%	\includegraphics[width=\linewidth]{p1.pdf}
+%	\caption{Comparisons for a single pole integral calculation *Eq.~\ref{eq:exact_single_pole})
+%		between the pole refined mesh integration function we made (blue circles), % Eventually say that better 
+%		a naive trapezoidal integration not considering effects of poles (orange dots), and
+%		the exact solution described by Eq.~\ref{eq:exact_single_pole} (black line)
+%		for varying $\Delta v$.}
+%	\label{f:single_pole_comparison}
+%\end{figure}
 
 Fig.~\ref{f:single_pole_comparison} shows how our pole integration compares with 
 a naive trapezoidal integration and the exact solution from Eq.~\ref{eq:exact_single_pole},
@@ -115,40 +115,40 @@ Thus suggests for these double poles, we want to be the pole to be further from 
 with the pole refined mesh integration. 
 Otherwise, perhaps the solution is to use the pole refined mesh integration for the imaginary component and the naive trapezoidal integration for the real component.
 
-\begin{figure}[!htb]
-	\centering
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e0}
-		\caption{$\Delta v = 10^0$}
-	\end{subfigure}
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-1}
-		\caption{$\Delta v = 10^{-1}$}
-	\end{subfigure}
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-2}
-		\caption{$\Delta v = 10^{-2}$}
-	\end{subfigure}
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-3}
-		\caption{$\Delta v = 10^{-3}$}
-	\end{subfigure}
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-4}
-		\caption{$\Delta v = 10^{-4}$}
-	\end{subfigure}
-	\begin{subfigure}{.32\textwidth}
-		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-5}
-		\caption{$\Delta v = 10^{-5}$}
-	\end{subfigure}
-	\caption{Comparisons for a double pole integral calculation
-		between the pole refined mesh integration function we made (blue solid line), % Eventually say that better 
-		a naive trapezoidal integration not considering effects of poles (orange dots), 
-		the exact solution described by Eq.~\ref{eq:exact_double_pole} (red dashed lined), 
-		and the Plemelj limit described by Eq.~\ref{eq:a_plemelj} (black dashed line)
-		for varying $\Delta v$.}
-	\label{f:double_pole_comparison}
-\end{figure}
+%\begin{figure}[!htb]
+%	\centering
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e0}
+%		\caption{$\Delta v = 10^0$}
+%	\end{subfigure}
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-1}
+%		\caption{$\Delta v = 10^{-1}$}
+%	\end{subfigure}
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-2}
+%		\caption{$\Delta v = 10^{-2}$}
+%	\end{subfigure}
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-3}
+%		\caption{$\Delta v = 10^{-3}$}
+%	\end{subfigure}
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-4}
+%		\caption{$\Delta v = 10^{-4}$}
+%	\end{subfigure}
+%	\begin{subfigure}{.32\textwidth}
+%		\includegraphics[width=\linewidth]{Gaussian_vs_Plemelj_changeGamma_doublePole_1e-5}
+%		\caption{$\Delta v = 10^{-5}$}
+%	\end{subfigure}
+%	\caption{Comparisons for a double pole integral calculation
+%		between the pole refined mesh integration function we made (blue solid line), % Eventually say that better 
+%		a naive trapezoidal integration not considering effects of poles (orange dots), 
+%		the exact solution described by Eq.~\ref{eq:exact_double_pole} (red dashed lined), 
+%		and the Plemelj limit described by Eq.~\ref{eq:a_plemelj} (black dashed line)
+%		for varying $\Delta v$.}
+%	\label{f:double_pole_comparison}
+%\end{figure}
 
 For a single pole at $z$ with order 2, the analytical solution to the integral is. 
 % Do this test at some point
