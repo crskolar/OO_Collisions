@@ -2,13 +2,7 @@
 
 \section{O+O Stuff}
 
-\begin{equation}
-	f_0 = \frac{
-	\exp\bigg( - \frac{2 D^* v_\perp}{v_{th,\perp}} \bigg) I_0 \bigg(  \frac{2 D^* v_\perp}{v_{th,\perp}} \bigg)  
-	\exp \bigg(  -\frac{v_\parallel^2}{v_{th,\parallel}^2} - \Big[ \frac{v_\perp}{v_{th,\perp} } - D^* \Big]^2  \bigg)}{
-	\pi^{3/2} v_{th,\parallel} v_{th,\perp}^{2}}
-	\label{eq:toroidal_dist}
-\end{equation}
+
 
 
 \section{ISR Theory}
@@ -65,6 +59,16 @@ The modified distribution function is
 	f_{0s}(v)   d\mathbf{v}^3 \Bigg).
 	\label{eq:Ms}
 \end{equation}
+
+Due to Bragg scattering, we must note that the effective wavenumber is two times that of what you would calculate for the ISR transmit frequency.
+For example, the standard approach would be to calculate the radar wavelength as $\lambda=c/\nu$ where $c$ is the speed of light and $\nu$ is the radar frequency.
+Then the wavenumber is related to the wavelength as $k=2\pi/\lambda$. 
+But, due to the constructive interference from Bragg scattering, we need to multiply this wavenumber by two giving us 
+\begin{equation}
+	k = \frac{4\pi \nu}{c}.
+	\label{eq:k}
+\end{equation}
+
 
 For a normalized Maxwellian distribution,
 \begin{equation}

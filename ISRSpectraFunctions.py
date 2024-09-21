@@ -17,14 +17,15 @@ import matplotlib.gridspec as gridspec
 
 # Get linear interpolation coefficients for 1D or 2D arrays 
 # Note that this only works in the one 2D array direction (iterating through all the rows)
+# So, you need to make sure that you are properly indexing in the parallel direction
 def getLinearInterpCoeff(x, y):
     # Set everything up based on if we have 1d or 2d data
-    if len(np.shape(y)) == 2:
+    if len(np.shape(y)) == 2:  # 2D data
         [numPar, numPerp] = np.shape(y)
         numElements = numPar - 1
         a = np.zeros((numElements, numPerp))
         b = np.zeros((numElements, numPerp))
-    elif len(np.shape(y)) == 1:
+    elif len(np.shape(y)) == 1:  # 1D data (I honestly don't remember why I implemented this, I only use it with 2D)
         numElements = len(y) - 1
         a = np.zeros(numElements)
         b = np.zeros(numElements)
@@ -51,9 +52,10 @@ def pstarIndefiniteIntegral(a, b, z, x):
 # We are evaluating the indefinite integral over each line segment
 # Then, we calculate the whole integral by taking the summation of each line segement value
 def interpolatedIntegral(a, b, z, x, integralFunction):
-    integratedValue = 0.0 + 1j*0.0# might need to rethink this
+    integratedValue = 0.0 + 1j*0.0  # Initialize a complex valued zero
     # Iterate through each element
     for i in range(len(a)):
+        # Evaluate the indefinite integral in each line segment by evaluating at the edge points
         integratedValue += integralFunction(a[i], b[i], z, x[i+1]) - integralFunction(a[i], b[i], z, x[i])
     return integratedValue
 
@@ -83,20 +85,22 @@ def calcSumTerms(nBase, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu):
     start_time = time.time()
     proc = mp.Process()
 
+    # Initialize a bunch of complex valued zeros
     sum_U = np.zeros_like(omega) + 1j*0.0
     sum_M = np.zeros_like(omega) + 1j*0.0
     sum_chi = np.zeros_like(omega) + 1j*0.0
     
     # Iterate through the two signs. Summation term needs to be symmetric
+    # So for each individual n, we calculate the n and -n summation value
     for sgn in [-1.0, 1.0]:
         n = sgn*nBase
 
-        # Calculate the base pole
+        # Calculate the pole
         z = (omega - n*Oc - 1j*nu)/kpar
 
         # Iterate through omega to get summation terms for each omega
         for k in range(0, len(omega)):
-            # Do the integrals for the three types of poles that show up in the calculations
+            # Do the parallel integrals for the three types of poles that show up in the calculations
             # 1: A single pole at z with order 1
             # 2: A single pole at z with order 2
             # 3: A double pole at z and z* (each first order)
@@ -104,7 +108,7 @@ def calcSumTerms(nBase, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu):
             p2 = interpolatedIntegral(a, b, z[k], vpar, p2IndefiniteIntegral)
             pstar = interpolatedIntegral(a, b, z[k], vpar, pstarIndefiniteIntegral)
             
-            # Perform summation for U, M, and chi
+            # Use trapz to do the perpendicular integrals and perform the summations for U, M, and chi
             sum_U[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*p1,vperp)
             sum_M[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*pstar,vperp)
             sum_chi[k] += np.trapz(vperp*p2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(p1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
@@ -130,7 +134,7 @@ def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpa
     # Make an array for all n values we want to consider
     nArray = np.arange(nStart, nmax+1)
     
-    # Check to make sure that the number of processors is <= to available number on computer
+    # Check to make sure that the number of processors is <= to the available number on computer
     if num_processors > mp.cpu_count():
         num_processors = mp.cpu_count()  # If too many called, default to max available
     
@@ -176,10 +180,11 @@ def calcFromSums(sum_U, sum_M, sum_chi, kpar, kperp, nu, wp):
     return U, M, chi
 
 # Define a metric for iterative error
+# Used to convergence checking with the summation
 def calcIterError(old, new):
     return np.max(np.abs(old - new)) # For now, using LInfinity norm of difference between old and new
 
-# Load summation and parameter data
+# Load summation and parameter data based on all the outputs of calcSumTerms_par 
 def loadSumData(fileName):
     # Load summation data
     sum_U = np.loadtxt(fileName+'_sum_U.txt', dtype=np.complex_)
@@ -205,7 +210,7 @@ def loadSumData(fileName):
 # We will do this by testing differences with each succesive summation in U, M, and chi
 # Input is the base file name for all of the data (including any file directory information)
 def checkSumConvergence(fileName, TOL):
-    [sum_U, sum_M, sum_chi, omega, kperp, kpar, nu, m] = loadSumData(fileName)
+    [sum_U, sum_M, sum_chi, omega, kperp, kpar, nu, m, wp] = loadSumData(fileName)
     
     # Get nmax
     nmax = len(sum_U)-1
@@ -223,7 +228,7 @@ def checkSumConvergence(fileName, TOL):
         # Calculate U, M, and chi up to each n
         [U, M, chi] = calcFromSums(sum_U[:(n+1)], sum_M[:(n+1)], sum_chi[:(n+1)], kpar, kperp, nu, 1.0) # Might be able to optimize this, but works for now
         
-        if n != 0:  # If we n isn't 0, then do the convergence calculation between current and previous iteration
+        if n != 0:  # If n isn't 0, then do the convergence calculation between current and previous iteration
             Re_U_error[n-1] = calcIterError(np.real(U_old), np.real(U))
             Im_U_error[n-1] = calcIterError(np.imag(U_old), np.imag(U))
             Re_M_error[n-1] = calcIterError(np.real(M_old), np.real(M))
@@ -244,12 +249,14 @@ def checkSumConvergence(fileName, TOL):
     figConverge.patch.set_facecolor('white')
     ax = plt.subplot(gs[0])
     
+    # Plot all errors
     ax.plot(nArray, Re_U_error,'--',linewidth=2,color='C0',label='Re($U$)')
     ax.plot(nArray, Im_U_error,'--',linewidth=2,color='C1',label='Im($U$)')
     ax.plot(nArray, Re_M_error,'--',linewidth=2,color='C3',label='Re($M$)')
     ax.plot(nArray, Re_chi_error,'--',linewidth=2,color='C8',label='Re($\\chi$)')
     ax.plot(nArray, Im_chi_error,'--',linewidth=2,color='C9',label='Im($\\chi$)')
         
+    # Make figure look nice
     ax.set_yscale('log')
     ax.set_xscale('log')
     ax.grid()
@@ -257,6 +264,7 @@ def checkSumConvergence(fileName, TOL):
     ax.set_ylabel('Iterative Error')
     ax.legend(ncols=1,loc='lower left')#,bbox_to_anchor=  (1.04,-.05,.4,.8))
     
+    # Text output on convergence status
     if (np.array([Re_U_error[-1], Im_U_error[-1], Re_M_error[-1], Re_chi_error[-1], Im_chi_error[-1]])<TOL).all():
         print(fileName + " has converged.")
         converged = True
@@ -264,6 +272,7 @@ def checkSumConvergence(fileName, TOL):
         print(fileName + " has not converged.")
         converged = False
     
+    # Save figure
     figConverge.savefig(fileName+'_convergenceCheck.png',format='png')
     plt.close(figConverge)
     return converged
@@ -302,9 +311,10 @@ def calcM_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, U):
     for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
-        M += np.exp(-yn**2)*sp.ive(n,kperp**2*rho_avg**2)
+        M += sp.ive(n, kperp**2*rho_avg**2)*(math.pi**.5*np.real(np.exp(-yn**2))+2*np.imag(sp.dawsn(yn)))
     
-    return np.real(M*math.pi**.5/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2)
+    # Multiply and add everything else and return
+    return M/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
 
 # This function calculates the exact susceptibility, chi, for a Maxwellian distribution
 # omega and U are 1D arrays
@@ -314,9 +324,11 @@ def calcChi_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, alpha, U,
     for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
-        chi += sp.ive(n, kperp**2*rho_avg**2)*(1 - (omega-1j*nu)*(2*sp.dawsn(yn)+1j*math.pi**.5*np.exp(-yn**2))/(kpar*vth))
+        chi += sp.ive(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn**2)  )
         
-    return alpha**2*(Te/Ts)*chi/(1+U)
+        # chi += sp.ive(n, kperp**2*rho_avg**2)*(1 - (omega-1j*nu)*(2*sp.dawsn(yn)+1j*math.pi**.5*np.exp(-yn**2))/(kpar*vth))
+        
+    return (1-(omega-1j*nu)*chi/kpar/vth)*alpha**2*Te/Ts/(1+U)
 
 
 ###############################################################################
@@ -376,6 +388,8 @@ def calcChi_biMax(omega, kpar, kperp, vthpar, vthperp, nmax, rho_avg, Oc, nu, U,
         
     return chi*Te*alpha**2/Tpar/(1+U)
 
+# Modified distribution still needs work. But this whole section is unimportant
+
 ###############################################################################
 
 ########################### Calculate ISR spectrum ############################
@@ -386,5 +400,34 @@ def calcChi_biMax(omega, kpar, kperp, vthpar, vthperp, nmax, rho_avg, Oc, nu, U,
 # Currently assumes only one ion species
 def calcSpectra(M_i, M_e, chi_i, chi_e):
     # Calculate the dielectric function
-    eps = 1 + chi_i + chi_e
-    return 2*np.abs(1-chi_e/eps)**2*M_e+2*np.abs(chi_e/eps)**2*M_i
+    eps = 1 + chi_e + chi_i
+    return np.real(2*np.abs(1-chi_e/eps)**2*M_e+2*np.abs(chi_e/eps)**2*M_i)
+
+
+###############################################################################
+
+########################### Distribution Functions ############################
+
+###############################################################################
+
+# Calculate a normalized Maxwellian distribution in cylindrical coordinates
+def maxwellian_norm(vperp, vpar, vth):
+    return np.exp(-(vperp**2+vpar**2)/vth**2)/vth**3/math.pi**1.5
+
+# Calculate a normalized toroidal distribution in cylindrical coordinates
+def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
+    Cperp = np.abs(vperp)/vthperp
+    Cpar = vpar/vthpar
+    return sp.ive(0,2*Dstar*Cperp)*np.exp(-Cpar**2-(Cperp-Dstar)**2)/vthperp**2/vthpar/math.pi**1.5
+
+# Calculate a normalized kappa distribution in cylindrical coordinates
+# Note that we are using a loggamma approach so that we can use higher kappa values without overflow errors
+def kappa_norm(vperp, vpar, vth, kappa):
+    return (1+(vperp**2+vpar**2)/vth**2/(kappa-1.5))**(-kappa-1)*np.exp(sp.loggamma(kappa+1)-sp.loggamma(kappa-1.5))/math.pi**1.5/vth**3/(kappa-1.5)**2.5
+
+# Calculate a normalized super-Gaussian distribution in cylindrical coordinates
+# Note that we are using a loggamma approach so that we can use higher kappa values without overflow errors
+def superG_norm(vperp, vpar, vth, p):
+    vp = vth*(1.5*np.exp(sp.loggamma(3/p) - sp.loggamma(5/p)))**.5
+    return np.exp(-(vperp**2+vpar**2)**(p/2)/vp**p)*p/4/math.pi/vp**3/sp.gamma(3/p)
+

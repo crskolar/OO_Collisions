@@ -67,23 +67,25 @@ approxColor = 'C1'
 exactLine = '-'
 approxLine = '--'
 
+# Initialize figure
+font = {'size'   : 22}
+mpl.rc('font', **font)
+fig = plt.figure(1, figsize=(8,6))
+gs = gridspec.GridSpec(1,1)
+gs.update(left=0.13 , right=.99, bottom=.14, top=.945, wspace=0.15, hspace=.015)
+fig.patch.set_facecolor('white')
+
 # Iterate through the angles
-for i in range(7,8):#len(angles)):
+for i in range(0,8):#len(angles)):
     print(angles[i])
     
     # Build the appropriate filename
     fileName = "par2.3_perp2_theta" + str(angles[i])
     
     # Check the convergence
-    checkSumConvergence(fileDir + fileName, 1e-20)
+    # checkSumConvergence(fileDir + fileName, 1e-20)
     
-    # Initialize figure
-    font = {'size'   : 22}
-    mpl.rc('font', **font)
-    fig = plt.figure(1, figsize=(8,6))
-    gs = gridspec.GridSpec(1,1)
-    gs.update(left=0.13 , right=.99, bottom=.14, top=.945, wspace=0.15, hspace=.015)
-    fig.patch.set_facecolor('white')
+    
     
     # Calculate kpar and kperp
     theta = np.deg2rad(angles[i])
@@ -101,19 +103,19 @@ for i in range(7,8):#len(angles)):
     
     S_exact = calcSpectra(M_i_exact, M_e_exact, chi_i_exact, chi_e_exact)
     
-    # Load data
-    [sum_U_i, sum_M_i, sum_chi_i, omega, kperp, kpar, nui, mi] = loadSumData(fileDir+fileName)
+    # # Load data
+    # [sum_U_i, sum_M_i, sum_chi_i, omega, kperp, kpar, nui, mi] = loadSumData(fileDir+fileName)
     
-    # # Calculate U, M, chi, and the resulting spectrum
-    U_e = calcU_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue)
-    M_e = calcM_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue, U_e)
-    chi_e = calcChi_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue, alpha, U_e, Te, Te)
-    [U_i, M_i, chi_i] = calcFromSums(sum_U_i, sum_M_i, sum_chi_i, kpar, kperp, nui, wpi)
-    S = calcSpectra(M_i, M_e, chi_i, chi_e)
+    # # # Calculate U, M, chi, and the resulting spectrum
+    # U_e = calcU_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue)
+    # M_e = calcM_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue, U_e)
+    # chi_e = calcChi_Maxwellian(omega, kpar, kperp, vthe, 2000, rho_avge, Oce, nue, alpha, U_e, Te, Te)
+    # [U_i, M_i, chi_i] = calcFromSums(sum_U_i, sum_M_i, sum_chi_i, kpar, kperp, nui, wpi)
+    # S = calcSpectra(M_i, M_e, chi_i, chi_e)
     
     ax = plt.subplot(gs[0])
-    ax.plot(omega_exact, S_exact, color=exactColor, linestyle=exactLine, linewidth=3,label='Exact')
-    ax.plot(omega, S, color=approxColor, linestyle=approxLine, linewidth=3,label='Approx')
+    ax.plot(omega_exact, S_exact, linestyle=exactLine, linewidth=3,label='Exact')
+    # ax.plot(omega, S, color=approxColor, linestyle=approxLine, linewidth=3,label='Approx')
     
     ax.grid()
     ax.set_xlabel('$\omega$ (rad/s)')
@@ -122,7 +124,7 @@ for i in range(7,8):#len(angles)):
     ax.ticklabel_format(style='sci',axis='x',scilimits=(0,0))
     ax.set_xlim(np.min(omega),np.max(omega))
     ax.legend()
-    fig.savefig(fileDir + fileName+'_spectrum.png',format='png')
+    # fig.savefig(fileDir + fileName+'_spectrum.png',format='png')
     
     
     

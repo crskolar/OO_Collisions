@@ -259,9 +259,7 @@ These points, visually, provide a better approximation of the distribution funct
 However, as will be shown in a few figures below, we found that this method was lacking, especially in terms of accurately capturing the second order pole, Eq.~\ref{eq:p2}.
 
 
-% Change one of these circles to x's
-% Update line to be at pi/12
-% Do calculation at Re(z)=1 and see what that looks like
+% Add something about elements vs nodes here? Elemts from 0 to m, nodes go from 0 to m+1
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=.7\linewidth]{explain.pdf}
@@ -274,17 +272,29 @@ However, as will be shown in a few figures below, we found that this method was 
 
 Since this method only chooses a finite number of points and can only ever be as good as the interpolation scheme, 
 the thought was to instead attempt to get an infinite number of points, i.e., a continuous representation.
-Since the adaptive mesh is based on linear interpolation, why not just represent the entire distribution function as a set of 
-linear piecewise functions in the parallel direction, as shown by the orange lines.
-This gives a continuous representation of the distribution function with each line segment of the interpolated
-distribution function described as a linear equation of the form
+Since the adaptive mesh is based on linear interpolation, why not just represent the entire distribution function as a set of linear piecewise functions in the parallel direction, as shown by the orange lines.
+For a mesh with $m+1$ points, one will get $m$ elements of the piecewise linear representation.
+This results in the distribution function being defined as
+\begin{equation}
+	f_{0s}(v_\perp,v_\parallel) = 
+	\begin{cases}
+		f_{0s,0} & v_{\parallel,0} \leq v_\parallel \leq v_{\parallel,1} \\
+		f_{0s,1} & v_{\parallel,1} \leq v_\parallel \leq v_{\parallel,2} \\
+		\vdots  & \ \\
+		f_{0s,j} & v_{\parallel,j} \leq v_\parallel \leq v_{\parallel,j+1} \\
+		\vdots & \\
+		f_{0s,m} & v_{\parallel,m} \leq v_\parallel \leq v_{\parallel,m+1} 
+	\end{cases},
+	\label{eq:fLinearFull}
+\end{equation}
+with
 \begin{equation}
 	f_{0s,j} (v_\perp, v_\parallel) = a_j(v_\perp) v_\parallel + b_j (v_\perp),
 	\label{eq:fLinear}
 \end{equation}
 where $a_j$ and $b_j$ are polynomial coefficients calculated using
 \begin{align}
-	a_j(v_\perp) = \frac{f_{0s}(v_\perp, v_{\parallel,i+1}) - f_{0s}(v_\perp, v_{\parallel,i})}{v_{\parallel,j+1}-v_{\parallel,j}}
+	a_j(v_\perp) = \frac{f_{0s}(v_\perp, v_{\parallel,j+1}) - f_{0s}(v_\perp, v_{\parallel,j})}{v_{\parallel,j+1}-v_{\parallel,j}}
 	\label{eq:aCoeff} \\
 	b_j(v_\perp) = f_{0s}(v_\perp, v_{\parallel,j}) - a_j(v_\perp) v_{\parallel,j}.
 	\label{eq:bCoeff}
@@ -294,8 +304,28 @@ Note that the distribution function is an azimuthally symmetric function of $v_\
 In our case, we only need to do the linear interpolation in the parallel direction.
 Therefore, the coefficients $a_j$ and $b_j$ are functions of $v_\perp$.
 
-% Rethink some of the terminology. It could be improved with all the p's everywhere meaning subtly different things
-With this discrete representation, we can obtain the analytic indefinite integrals by substituting Eq.~\ref{eq:fLinear} into Eqs.~\ref{eq:p1}-\ref{eq:p2} yielding
+Thus, any integral regarding $f_{0s}$ can be written as a summation of integrals based on the linear representation in Eq.~\ref{eq:fLinearFull} as
+\begin{equation}
+	\int_{-\infty}^\infty f_{0s} dv_\parallel = \sum_{j=0}^m \int_{v_{\parallel,j}}^{v_{\parallel,j+1}} f_{0s,j} dv_\parallel.
+\end{equation}
+With this discrete representation, we can obtain the analytic integrals by substituting Eqs.~\ref{eq:fLinearFull} and \ref{eq:fLinear} into Eqs.~\ref{eq:p1}-\ref{eq:p2} to get
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_{0s}(v_\parallel,v_\perp)}{v_\parallel - z} dv_\parallel = 
+	\sum_{j=0}^m  \Bigg[ a_j(v_\perp) \big(v_\parallel-z\big) + \big[ a_j(v_\perp) z + b_j(v_\perp) ] \ln \big( v_\parallel - z \big) \Bigg]_{v_{\parallel,j}}^{v_{\parallel,j+1}}
+	\label{eq:p1Linear}
+\end{equation}
+\begin{equation}
+	\int_{-\infty}^\infty \frac{f_{0s}(v_\parallel,v_\perp)}{(v_\parallel - z)(v_\parallel - z^*)} dv_\parallel = \sum_{j=0}^m \Bigg[
+	- \frac{i \Big( \big[ a_j(v_\perp)z + b_j(v_\perp)\big] \ln \big[ v_\parallel-z \big] - 
+		\big[ a_j(v_\perp)z^* + b_j(v_\perp)\big] \ln \big[ v_\parallel-z^* \big] 
+		\Big)  }{2 \im(z)} \Bigg]_{v_{\parallel,j}}^{v_{\parallel,j+1}}
+	\label{eq:pstarLinear}
+\end{equation}
+\begin{equation}
+	\int_{-\infty}^\infty  \frac{f_{0s,j}(v_\parallel,v_\perp)}{(v_\parallel - z)^2} dv_\parallel = \sum_{j=0}^m \Bigg[
+	\frac{-a_j(v_\perp)z - b_j(v_\perp)}{v_\parallel - z} + a_j(v_\perp) \ln\big(v_\parallel-z\big)\Bigg]_{v_{\parallel,j}}^{v_{\parallel,j+1}}
+	\label{eq:p2Linear}
+\end{equation}
 \begin{equation}
 	p_1^j (v_\perp, v_\parallel) = \int \frac{f_{0s,j}(v_\parallel,v_\perp)}{v_\parallel - z} dv_\parallel = 
 	a_j(v_\perp) \big(v_\parallel-z\big) + \big[ a_j(v_\perp) z + b_j(v_\perp) ] \ln \big( v_\parallel - z \big)

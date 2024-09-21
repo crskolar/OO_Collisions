@@ -71,9 +71,6 @@ maxwellLine = '-'
 toroidalLine = '-'
 
 
-
-
-
 # Make a function to calculate the toroidal distribution 
 def toroidal_norm(vperp, vpar, vthperp, vthpar, Dstar):
     Cperp = np.abs(vperp)/vthperp
@@ -127,7 +124,7 @@ for i in range(8,9):#0,len(angles)):
     kpar = k_ISR*np.cos(theta)
     kperp = k_ISR*np.sin(theta)
     
-    # Get parametrization for 1D dist function for vpar and vperp
+    # Get parametrization for 1D dist function for   vpar and vperp
     if i == 0:
         vperpLine = np.zeros_like(vpar)
         vparLine = vpar
