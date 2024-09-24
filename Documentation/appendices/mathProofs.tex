@@ -1028,12 +1028,12 @@ Using the relationship from Eq.~\ref{eq:a_Daw}, we can write Eq.~\ref{eq:Z-with-
 \end{equation}
 
 So now, the goal is to rewrite Eqs.~\ref{eq:Us_exact} and \ref{eq:chis_exact} in terms of the plasma dispersion function.
-First, solve Eq.~\ref{eq:Z-with-Da} for $2Da(\zeta)$ to get
+First, solve Eq.~\ref{eq:Z-with-Da} for $2\Da(\zeta)$ to get
 \begin{equation}
 	2\Da(\zeta) = i\sqrt{\pi} \exp(-\zeta^2) -Z(\zeta).
 	\label{eq:Da-with-Z}
 \end{equation}
-Substituting Eq.~\ref{eq:Da-with-Z} into Eqs.~\ref{eq:Us_exact} and \ref{eq:chis_exact} gives
+Substituting Eq.~\ref{eq:Da-with-Z} into Eqs.~\ref{eq:Us_exact}, \ref{eq:chis_exact}, and \ref{eq:Ms_exact} gives
 \begin{equation}
 	U_s = 
 	\frac{i \nu_{s}}{k_\parallel v_{th,s}} 
@@ -1049,6 +1049,14 @@ Substituting Eq.~\ref{eq:Da-with-Z} into Eqs.~\ref{eq:Us_exact} and \ref{eq:chis
 	\Big( 2 i \sqrt{\pi} \exp[-y_n^2] - Z(y_n) \Big)
 	\bigg]
 	\label{eq:chis_exact_Z}
+\end{equation}
+\begin{equation}
+	M_s = - \frac{|U_s|^2}{\nu_s |1+U_s|^2} 
+	+ \frac{1}{k_\parallel v_{th,s} |1+U_s|^2}
+	\sum_n \exp \big(-k_\perp^2 \bar{\rho}^2_s \big)
+	I_n \big( k_\perp^2 \bar{\rho}^2_s \big)
+	\Bigg[ 2\sqrt{\pi} \re\bigg( \exp \Big[-y_n^2\Big] \bigg) - \im \bigg( Z\Big[y_n\Big] \bigg)  \Bigg].
+	\label{eq:Ms_exact_Z}
 \end{equation}
 
 

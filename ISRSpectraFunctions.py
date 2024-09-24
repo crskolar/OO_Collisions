@@ -187,9 +187,9 @@ def calcIterError(old, new):
 # Load summation and parameter data based on all the outputs of calcSumTerms_par 
 def loadSumData(fileName):
     # Load summation data
-    sum_U = np.loadtxt(fileName+'_sum_U.txt', dtype=np.complex_)
-    sum_M = np.loadtxt(fileName+'_sum_M.txt', dtype=np.complex_)
-    sum_chi = np.loadtxt(fileName+'_sum_chi.txt', dtype=np.complex_)
+    sum_U = np.loadtxt(fileName+'_sum_U.txt', dtype=np.complex128)
+    sum_M = np.loadtxt(fileName+'_sum_M.txt', dtype=np.complex128)
+    sum_chi = np.loadtxt(fileName+'_sum_chi.txt', dtype=np.complex128)
     
     # Load omega data
     omega = np.loadtxt(fileName + '_omega.txt')
@@ -312,9 +312,25 @@ def calcM_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, U):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
         
         M += sp.ive(n, kperp**2*rho_avg**2)*(math.pi**.5*np.real(np.exp(-yn**2))+2*np.imag(sp.dawsn(yn)))
+        # M += sp.ive(n, kperp**2*rho_avg**2)*np.exp(-yn**2)
     
     # Multiply and add everything else and return
     return M/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
+    # return M*math.pi**.5/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
+
+# This function calculates the modified distribution, M, as formulated by Froula
+# This is correct in the limit of nu goes to zero, but is incorrect in collisional cases
+def calcM_Maxwellian_Froula(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, U):
+    M = np.zeros_like(omega) + 1j*0.0
+    
+    # Iterate from 0 to nmax
+    for n in range(-nmax,nmax+1):
+        yn = (omega - n*Oc-1j*nu)/kpar/vth
+        
+        M += sp.ive(n, kperp**2*rho_avg**2)*np.exp(-yn**2)
+    
+    # Multiply and add everything else and return
+    return M*math.pi**.5/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
 
 # This function calculates the exact susceptibility, chi, for a Maxwellian distribution
 # omega and U are 1D arrays

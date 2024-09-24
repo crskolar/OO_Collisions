@@ -94,12 +94,12 @@ the collisional term, susceptibility, and modified distribution function are
 	\label{eq:chis_exact}
 \end{equation}
 \begin{equation}
-	M_s = 
-	\Bigg[
-	\frac{1}{|1+U_s|^2} \frac{\sqrt{\pi}}{k_\parallel v_{th,s}}
-	\sum_n \exp(-k_\perp^2 \bar{\rho}_s^2) I_n (k_\perp^2 \bar{\rho}_s^2) \exp(-y_n^2)
-	\Bigg]
-	- \frac{|U_s|^2}{\nu_s |1+U_s|^2},
+	M_s = - \frac{|U_s|^2}{\nu_s |1+U_s|^2} 
+	+ \frac{1}{k_\parallel v_{th,s} |1+U_s|^2}
+	\sum_n \exp \big(-k_\perp^2 \bar{\rho}^2_s \big)
+	I_n \big( k_\perp^2 \bar{\rho}^2_s \big)
+	\Bigg[ \sqrt{\pi} \re\bigg( \exp \Big[-y_n^2\Big] \bigg) + 2 \im \bigg( \Da\Big[y_n\Big] \bigg)  \Bigg],
+	\label{eq:Ms_exact}	
 \end{equation}
 where
 \begin{equation}
