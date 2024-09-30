@@ -1,5 +1,5 @@
 import numpy as np
-import math 
+import math
 import scipy.special as sp
 import multiprocessing as mp
 from functools import partial
@@ -8,6 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
+import scipy.constants as const
 
 ###############################################################################
 
@@ -61,6 +62,78 @@ def interpolatedIntegral(a, b, z, x, integralFunction):
 
 ###############################################################################
 
+################### Functions for calculating interim values ##################
+
+###############################################################################
+
+# This function calculates the perpendicular and parallel wavenumbers
+# Inputs are the radar frequency in Hz and the aspect angle in degrees
+# This code assumes that 0 is parallel to the magnetic field and 90 is perpendicular
+# Outputs wavenumber components in rad/m
+def getK(nu_radar, angle):
+    k_ISR = 2*2*math.pi*nu_radar/const.c
+    theta = np.deg2rad(angle)
+    kpar = k_ISR*np.cos(theta)
+    kperp = k_ISR*np.sin(theta)
+    return kperp, kpar
+
+# This function calculates the gyrofrequency (Oc)
+# Inputs are the charge in C, the magnetic field strength in T, and mass in kg
+# Outputs gyrofrequency in rad/s
+def getGyroFrequency(q, B, m):
+    return np.abs(q*B/m)  # Assumes absolute value in case you gave a signed charge 
+
+# This function calculates the thermal velocity of a species
+# Intputs are temperature in K and mass in kg
+# Output is thermal velocity in m/s
+def getVth(T, m):
+    return (2*const.k*T/m)**.5
+
+# This function calculates the plasma frequency of a species
+# Inputs are density (n) in m^-3, charge in C, and mass in kg
+# Output is plasma frequency in rad/s
+def getPlasmaFrequency(n, q, m):
+    return (n*q**2/m/const.epsilon_0)**.5
+
+# This function calculates the average Larmor radius
+# Inputs are thermal velocity in m/s and gyrofrequency in rad/s
+# Output is average Larmor radius in m
+def getLarmorRadius_avg(vth, Oc):
+    return vth/Oc/2**.5    
+
+# This function calculates the Debye length based on the electron density and temperature
+# Inputs are electron number density in m^-3 and electron temperature in K
+# Output is Debye length in m
+def getDebyeLength(ne, Te):
+    return (const.epsilon_0*const.k*Te/ne/const.e**2)**.5
+
+# Calculate alpha, which is the incoherent scattering parameter
+def getAlpha(kperp, kpar, ne, Te):
+    lambdaD = getDebyeLength(ne, Te)
+    k_ISR = (kperp**2+kpar**2)**.5
+    return 1/k_ISR/lambdaD
+     
+
+# This function makes the velocity mesh (in m/s)
+# Input the order of the delta v in each direction
+# So 0 means 1 point per thermal velocity, -1 is 10 points, -2 is 100, etc.
+# extent is the number of thermal velocities you want your velocity space to extend to
+# In general, 4 is a good value for the extents (esp. for Maxwellians)
+# -2 is a good value for dvperp_order
+# Start at -2.3 for dvpar_order and decrease as needed to ensure proper convergence
+# The outputs are the 2D velocity meshes (VVperp and VVpar) and the 1D velocity meshes (vperp and vpar)
+def makeVelocityMesh(vth, dvperp_order, dvpar_order, extentPerp, extentPar):
+    dvpar = 10**dvpar_order*vth
+    vpar = np.arange(-extentPar*vth,extentPar*vth+dvpar,dvpar)
+    dvperp = 10**dvperp_order*vth
+    vperp = np.arange(0,extentPerp*vth+dvperp,dvperp)
+
+    [VVperp, VVpar] = np.meshgrid(vperp, vpar)
+    return VVperp, VVpar, vperp, vpar
+
+
+###############################################################################
+
 ############## Calculate numerical approximations for U, M, chi ###############
 
 ###############################################################################
@@ -75,7 +148,38 @@ def initialize_logger(fileName, fileDir, num_processors):
                                   logging.StreamHandler()])
     logging.info('Initializing log for %s using %d processors' % (fileName, num_processors))
 
-# Calculate the individual summation terms. 
+# This function calculates the individual perpendicular integral summation term for U and M for a specific n
+# We combine U and M because they do the same calculation but just have different inputs
+# For U, use p1 (first order pole at z)
+# For M, use pstar (two first poles at z and z*)
+def calcPerpSum_U_M(n, kperp, vperp, Oc, p):
+    return np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*p,vperp)
+
+# This function calculates the individual perpendicular integral summation term for chi for a specific n
+def calcPerpSum_chi(n, kperp, kpar, vperp, Oc, p1, p2):
+    return np.trapz(vperp*p2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(p1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
+
+# This function calculates U from the summation terms
+def calcU_fromSum(sum_U, kpar, nu):
+    if len(np.shape(sum_U)) == 2:
+        return -2*math.pi*1j*nu/kpar*np.sum(sum_U,axis=0)
+    elif len(np.shape(sum_U)) == 1:
+        return -2*math.pi*1j*nu/kpar*sum_U
+    
+def calcM_fromSum(sum_M, kpar, nu, U):
+    if len(np.shape(sum_M)) == 2:
+        return (np.sum(sum_M,axis=0)*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+    elif len(np.shape(sum_M)) == 1:
+        return (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
+    
+def calChi_fromSum(sum_chi, kperp, kpar, wp, U):
+    if len(np.shape(sum_chi)) == 2:
+        return np.sum(sum_chi,axis=0)*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+    elif len(np.shape(sum_chi)) == 1:
+        return sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+
+
+# Calculate the summation terms for U, M, and chi. 
 # Takes an input of one n value
 # Returns one set of values for the summation terms corresponding to n and -n for U, chi, and M   
 # a and b are arrays of the slope and y-intercept of the linear interpolation elements
@@ -109,9 +213,13 @@ def calcSumTerms(nBase, vpar, vperp, a, b, omega, kpar, kperp, Oc, nu):
             pstar = interpolatedIntegral(a, b, z[k], vpar, pstarIndefiniteIntegral)
             
             # Use trapz to do the perpendicular integrals and perform the summations for U, M, and chi
-            sum_U[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*p1,vperp)
-            sum_M[k] += np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*pstar,vperp)
-            sum_chi[k] += np.trapz(vperp*p2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(p1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
+            # dummy = 
+            sum_U[k] += calcPerpSum_U_M(n, kperp, vperp, Oc, p1)
+            # np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*p1,vperp)
+            sum_M[k] += calcPerpSum_U_M(n, kperp, vperp, Oc, pstar)
+            # np.trapz(sp.jv(n,kperp*vperp/Oc)**2*vperp*pstar,vperp)
+            sum_chi[k] += calcPerpSum_chi(n, kperp, kpar, vperp, Oc, p1, p2)
+            # np.trapz(vperp*p2*sp.jv(n,kperp*vperp/Oc)**2*(-1),vperp) + n*kperp/kpar*np.trapz(p1*sp.jv(n,kperp*vperp/Oc)*(sp.jv(n-1,kperp*vperp/Oc)-sp.jv(n+1,kperp*vperp/Oc)),vperp)
         # If n is 0, break the loop so we aren't double counting the zeroth order term
         if n == 0:
             break
@@ -161,22 +269,67 @@ def calcSumTerms_par(num_processors, nStart, nmax, vpar, vperp, a, b, omega, kpa
     
     return sum_U, sum_M, sum_chi
 
+# This is a serial function that just calculates the susceptibility
+# Inputs are:
+# vperp: 1D array of perpendicular velocity in m/s
+# vpar: 1D array of parallel velocity in m/s
+# f0: 2D normalized distribution function in m^-3 s^3. Note that for getLinearInterpCoeff to work, f0 must be set such that the f0[i] or f0[i,:] indexes the parallel direction
+# omega: 1D array of angular frequencies in rad/s you want the calculation run at
+# nu_radar: Radar frequency in Hz
+# theta: Aspect angle in degrees
+# q: Particle charge in C
+# B: Magnetic field strength in T
+# m: Particle mass in kg
+# nu: Collision frequency in Hz
+# nDens: Number density in m^-3
+# nmax: Maximum summation term to consider
+def calcChi(vperp, vpar, f0, omega, nu_radar, theta, q, B, m, nu, nDens, nmax):
+    # Get wavenumber from radar frequency and angle
+    [kperp, kpar] = getK(nu_radar, theta)
+
+    # Get the gyrofrequency
+    Oc = getGyroFrequency(q, B, m)
+
+    # Get plasma frequency
+    wp = getPlasmaFrequency(nDens, q, m)
+
+    # Get linear interpolation coefficients
+    [a, b] = getLinearInterpCoeff(vpar, f0)
+
+    # Initialize a bunch of complex valued zeros for summation terms
+    sum_U = np.zeros_like(omega) + 1j*0.0
+    sum_chi = np.zeros_like(omega) + 1j*0.0
+
+    # Iterate from -nmax to nmax
+    for n in range(-nmax, nmax+1):
+        print('n=%d' % (n))
+        # Calculate the pole
+        z = (omega - n*Oc - 1j*nu)/kpar
+
+        # Iterate through omega to get summation terms for each omega
+        for k in range(0, len(omega)):
+            # Do the parallel integrals for the first and second order poles
+            # 1: A single pole at z with order 1
+            # 2: A single pole at z with order 2
+            p1 = interpolatedIntegral(a, b, z[k], vpar, p1IndefiniteIntegral)
+            p2 = interpolatedIntegral(a, b, z[k], vpar, p2IndefiniteIntegral)
+        
+            # Use trapz to do the perpendicular integrals and perform the summations for U and chi
+            sum_U[k] += calcPerpSum_U_M(n, kperp, vperp, Oc, p1)
+            sum_chi[k] += calcPerpSum_chi(n, kperp, kpar, vperp, Oc, p1, p2)
+    U = calcU_fromSum(sum_U, kpar, nu)
+    chi = calChi_fromSum(sum_chi, kperp, kpar, wp, U)
+        
+    return chi
+
+
 # Calculate U, M, and chi from their summation terms
 # Input summations are assumed to be of the shape nmax+1 x len(omega) as per the output of the previous function
 # Outputs U, M, and chi as 1D arrays (as functions of omega)
 def calcFromSums(sum_U, sum_M, sum_chi, kpar, kperp, nu, wp):
-    
-    if len(np.shape(sum_U)) == 2:
-        # Perform summations and calculations
-        U = -2*math.pi*1j*nu/kpar*np.sum(sum_U,axis=0)
-        M = (np.sum(sum_M,axis=0)*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
-        chi = np.sum(sum_chi,axis=0)*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
-    
-    elif len(np.shape(sum_U)) == 1:
-        # Perform summations and calculations
-        U = -2*math.pi*1j*nu/kpar*sum_U
-        M = (sum_M*2*math.pi/kpar**2 -np.abs(U)**2/nu**2)*nu/np.abs(1+U)**2
-        chi = sum_chi*2*math.pi*wp**2/(kpar**2+kperp**2)/(1+U)
+    U = calcU_fromSum(sum_U, kpar, nu)
+    M = calcM_fromSum(sum_M, kpar, nu, U)
+    chi = calChi_fromSum(sum_chi, kperp, kpar, wp, U)
     return U, M, chi
 
 # Define a metric for iterative error
@@ -290,14 +443,11 @@ def calcU_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu):
     # Calculate yn
     U = np.zeros_like(omega) + 1j*0.0
     
-    # Iterate from 0 to nmax
+    # Iterate from -nmax to nmax
     for n in range(-nmax,nmax+1):
         # Calculate yn
         yn = (omega - n*Oc-1j*nu)/kpar/vth
-        
-        # Do summation term in Us
         U += sp.ive(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn*yn))
-        
     # Multiply by everything else and return
     return U*1j*nu/kpar/vth
 
@@ -307,28 +457,22 @@ def calcU_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu):
 def calcM_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, U):
     M = np.zeros_like(omega) + 1j*0.0
     
-    # Iterate from 0 to nmax
+    # Iterate from -nmax to nmax
     for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
-        
-        M += sp.ive(n, kperp**2*rho_avg**2)*(math.pi**.5*np.real(np.exp(-yn**2))+2*np.imag(sp.dawsn(yn)))
-        # M += sp.ive(n, kperp**2*rho_avg**2)*np.exp(-yn**2)
-    
+        M += sp.ive(n, kperp**2*rho_avg**2)*(math.pi**.5*np.real(np.exp(-yn**2))+2*np.imag(sp.dawsn(yn)))    
     # Multiply and add everything else and return
     return M/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
-    # return M*math.pi**.5/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
 
 # This function calculates the modified distribution, M, as formulated by Froula
 # This is correct in the limit of nu goes to zero, but is incorrect in collisional cases
 def calcM_Maxwellian_Froula(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, U):
     M = np.zeros_like(omega) + 1j*0.0
-    
-    # Iterate from 0 to nmax
+
+    # Iterate from -nmax to nmax
     for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
-        
         M += sp.ive(n, kperp**2*rho_avg**2)*np.exp(-yn**2)
-    
     # Multiply and add everything else and return
     return M*math.pi**.5/kpar/vth/np.abs(1+U)**2-np.abs(U)**2/nu/np.abs(1+U)**2
 
@@ -339,11 +483,7 @@ def calcChi_Maxwellian(omega, kpar, kperp, vth, nmax, rho_avg, Oc, nu, alpha, U,
     chi = np.zeros_like(omega) + 1j*0.0
     for n in range(-nmax,nmax+1):
         yn = (omega - n*Oc-1j*nu)/kpar/vth
-        
         chi += sp.ive(n, kperp**2*rho_avg**2)*(2*sp.dawsn(yn) + 1j*math.pi**.5*np.exp(-yn**2)  )
-        
-        # chi += sp.ive(n, kperp**2*rho_avg**2)*(1 - (omega-1j*nu)*(2*sp.dawsn(yn)+1j*math.pi**.5*np.exp(-yn**2))/(kpar*vth))
-        
     return (1-(omega-1j*nu)*chi/kpar/vth)*alpha**2*Te/Ts/(1+U)
 
 
